@@ -9,89 +9,88 @@
         <title></title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="static/css/bootstrap.css">
         <style>
             body {
                 padding-top: 50px;
                 padding-bottom: 20px;
             }
         </style>
-        <link rel="stylesheet" href="css/bootstrap-theme.min.css">
-        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="static/css/main.css">
 
-        <script src="js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
+        <script src="static/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
     </head>
     <body>
-        <!--[if lt IE 8]>
-            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-        <![endif]-->
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">Project name</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <form class="navbar-form navbar-right" role="form">
-            <div class="form-group">
-              <input type="text" placeholder="Email" class="form-control">
+        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+          <div class="container">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand brand" href="#">BrowseWiki</a>
             </div>
-            <div class="form-group">
-              <input type="password" placeholder="Password" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-success">Sign in</button>
-          </form>
-        </div><!--/.navbar-collapse -->
-      </div>
-    </nav>
+          </div>
+        </nav>
+        <div class="container">
+            <form method="POST" id="sg-form" class="col-md-6 form-group" style="padding: 0;">
+                <div class="col menubar" style="height: 40px;">
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success">Browse</button>
+                        <input type="submit" class="hidden">
+                    </div>
+                </div>
+                <div class="col-md-6 list-group-item" style="height: 140px; padding: 0;">
+                    <div class="cluster-rep" style="height:80%;">
+                        Word / Word / Word
+                    </div>
+                    <div class="btn-group pull-right" data-toggle="buttons" style="height: 20%;">
+                        <label class="btn select-button"><input type="checkbox">Select</label>
+                        <label class="btn view-button"><input type="radio">View</label>
+                    </div>
+                </div>
+                <div class="col-md-6 list-group-item" style="height: 140px; padding: 0;">
+                    <div class="cluster-rep" style="height:80%;">
+                        Word / Word / Word
+                    </div>
+                    <div class="btn-group pull-right" data-toggle="buttons" style="height: 20%;">
+                        <label class="btn select-button"><input type="checkbox">Select</label>
+                        <label class="btn view-button"><input type="radio">View</label>
+                    </div>
+                </div>
+            </form>
+            <div class="col-md-6">
+                <form method="POST" id="search-form" class="row menubar" style="height: 40px;">
+                    <input class="col-md-11" type="text" placeholder="This search bar does not work."/>
+                    <label class="btn btn-sm btn-success pull-right glyphicon glyphicon-search"></label>
+                </form>
+                <div class="row">
+                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start" style="height: 140px;">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">List group item heading</h5>
+                    </div>
+                    <p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
+                    <small>Details Details Details</small>
+                    </a>
+               </div>
 
-    <!-- Main jumbotron for a primary marketing message or call to action -->
-    <div class="jumbotron">
-      <div class="container">
-        <h1>Hello, world!</h1>
-        <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p>
-        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
-      </div>
-    </div>
+          </div>
+        </div> <!-- /container -->
 
-    <div class="container">
-      <!-- Example row of columns -->
-      <div class="row">
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-        </div>
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-       </div>
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-        </div>
-      </div>
+        <hr>
 
-      <hr>
+        <footer>
+            <p>&copy; Company 2015</p>
+        </footer>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="static/js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
 
-      <footer>
-        <p>&copy; Company 2015</p>
-      </footer>
-    </div> <!-- /container -->        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
+        <script src="static/js/vendor/bootstrap.min.js"></script>
 
-        <script src="js/vendor/bootstrap.min.js"></script>
-
-        <script src="js/main.js"></script>
+        <script src="static/js/main.js"></script>
 
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
         <script>

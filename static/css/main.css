@@ -1,0 +1,16 @@
+.brand {
+    position: absolute;
+    left: 50%;
+    margin-left: -50px !important;  /* 50% of your logo width */
+    display: block;
+}
+
+.cluster-rep {
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 50px;
+}
+
+.menubar {
+    padding-top: 5px;
+}
