@@ -36,47 +36,42 @@
           </div>
         </nav>
         <div class="container">
-            <form method="POST" id="sg-form" class="col-md-6 form-group" style="padding: 0;">
+            <form method="POST" id="sg-form" class="col-md-6 form-group" style="padding: 0;background-color: #bbb;">
                 <div class="col menubar" style="height: 40px;">
                     <div class="btn-group">
                         <button class="btn btn-sm btn-success">Browse</button>
-                        <input type="submit" class="hidden">
+                        <input type="submit" name="sgform" class="hidden">
                     </div>
                 </div>
+                {% for view_input in sgform.cluster_view %}
                 <div class="col-md-6 list-group-item" style="height: 140px; padding: 0;">
                     <div class="cluster-rep" style="height:80%;">
-                        Word / Word / Word
+                        {{ cluster_reps[loop.index0][0] }}/ {{ cluster_reps[loop.index0][1] }} / {{ cluster_reps[loop.index0][2] }}
                     </div>
                     <div class="btn-group pull-right" data-toggle="buttons" style="height: 20%;">
                         <label class="btn select-button"><input type="checkbox">Select</label>
-                        <label class="btn view-button"><input type="radio">View</label>
+                        <label class="btn view-button">{{ view_input }}View</label>
                     </div>
                 </div>
-                <div class="col-md-6 list-group-item" style="height: 140px; padding: 0;">
-                    <div class="cluster-rep" style="height:80%;">
-                        Word / Word / Word
-                    </div>
-                    <div class="btn-group pull-right" data-toggle="buttons" style="height: 20%;">
-                        <label class="btn select-button"><input type="checkbox">Select</label>
-                        <label class="btn view-button"><input type="radio">View</label>
-                    </div>
-                </div>
+                {% endfor %}
             </form>
             <div class="col-md-6">
                 <form method="POST" id="search-form" class="row menubar" style="height: 40px;">
                     <input class="col-md-11" type="text" placeholder="This search bar does not work."/>
                     <label class="btn btn-sm btn-success pull-right glyphicon glyphicon-search"></label>
                 </form>
-                <div class="row">
-                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start" style="height: 140px;">
+                {% if titles is defined %}
+                {% for i in range(6) %}
+                <div class="row" style="background-color: #bbb;height: 140px;">
+                    <a href="https://el.wikipedia.org/wiki/{{ links[i] }}" class="list-group-item list-group-item-action flex-column align-items-start" style="height: 140px;">
                     <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">List group item heading</h5>
+                        <h5 class="mb-1">{{ titles[i] }}</h5>
                     </div>
-                    <p class="mb-1">Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit.</p>
-                    <small>Details Details Details</small>
+                    <p>{{ summaries[i] }}</p>
                     </a>
                </div>
-
+                {% endfor %}
+                {% endif %}
           </div>
         </div> <!-- /container -->
 
