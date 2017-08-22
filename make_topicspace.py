@@ -3,6 +3,7 @@ import math
 import argparse
 
 from toolset.corpus import Corpus as crp
+from tmp_gen import tmp_gen
 from toolset.corpus import tokenize
 from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
@@ -28,7 +29,7 @@ def make_topicspace(data_file_path):
         max_batch_size = 20000
         batch = []
 
-        for i, text in enumerate(corpus.document_generator()):
+        for i, text in enumerate(tmp_gen()):
             batch.append(tokenize(text))
             batch_size += 1
             if batch_size >= max_batch_size:
@@ -45,7 +46,7 @@ def make_topicspace(data_file_path):
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
         corpus = [dictionary.doc2bow(tokenize(text))
-                  for text in corpus.document_generator()]
+                  for text in tmp_gen()]
         joblib.dump(corpus, data_file_path + '/corpus.txt')
 
     # Transform from BoW representation to tf-idf.
