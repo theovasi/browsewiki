@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import RadioField, SelectMultipleField, FieldList, widgets
+from wtforms import RadioField, BooleanField
 from wtforms.validators import DataRequired, url
 
 class ScatterGatherForm(FlaskForm):

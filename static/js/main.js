@@ -6,6 +6,6 @@ $(document).ready(function() {
         $(this).addClass('active');
     });
     $('.view-button').on('change', function() {
-        //$('#sg-form').submit();
+        $('#sg-form').submit();
     });
 });
