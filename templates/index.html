@@ -18,7 +18,7 @@
             }
         </style>
         <link rel="stylesheet" href="static/css/main.css">
-
+        <script src="static/js/vendor/bootstrap.min.js"></script>
         <script src="static/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
     </head>
     <body>
@@ -39,8 +39,7 @@
             <form method="POST" id="sg-form" class="col-md-6 form-group" style="padding: 0;">
                 <div class="col menubar" style="height: 40px;">
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-success">Browse</button>
-                        <input type="submit" name="sgform" class="hidden">
+                        <button class="btn btn-sm btn-success"><input type="submit" name="sgform" class="hidden">Browse</button>
                     </div>
                 </div>
                 {% for view_input in sgform.cluster_view %}
@@ -49,7 +48,7 @@
                         {{ cluster_reps[loop.index0][0] }}/ {{ cluster_reps[loop.index0][1] }} / {{ cluster_reps[loop.index0][2] }}
                     </div>
                     <div class="btn-group pull-right" data-toggle="buttons" style="height: 20%;">
-                        <label class="btn select-button"><input type="checkbox">Select</label>
+                        <label class="btn select-button">{{ select_list[loop.index0] }}Select</label>
                         <label class="btn view-button">{{ view_input }}View</label>
                     </div>
                 </div>
@@ -83,7 +82,7 @@
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="static/js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
 
-        <script src="static/js/vendor/bootstrap.min.js"></script>
+
 
         <script src="static/js/main.js"></script>
 

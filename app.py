@@ -16,8 +16,6 @@ summary_dict = joblib.load('data/summary_dict.txt')
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
-
-
 def index():
     sgform = ScatterGatherForm()
     cluster_reps = dict()
@@ -27,13 +25,14 @@ def index():
         term_ids = lda_model.get_topic_terms(topic_id, topn=3)
         for term_id in term_ids:
             terms.append(dictionary[term_id[0]])
-            app.logger.debug(terms)
         cluster_reps[i] = terms
     if request.method == 'POST':
         doc_ids = []
         titles = []
         links = []
         summaries = []
+        selected_clusters = sgform.cluster_select.data
+        app.logger.debug(selected_clusters)
         cluster_id = request.form['cluster_view']
         dist = dist_space[:, int(cluster_id)] # Distances of the documents form the cluster center.
         # Find the ids of the documents that belogn to this cluster.
@@ -44,8 +43,10 @@ def index():
             links.append(link_dict[id])
             summaries.append(summary_dict[id])
         return render_template('index.html', sgform=sgform, titles=titles,
-                           links=links, summaries=summaries, cluster_reps=cluster_reps)
-    return render_template('index.html', sgform=sgform, cluster_reps=cluster_reps) 
+                           links=links, summaries=summaries, cluster_reps=cluster_reps,
+                           select_list=list(sgform.cluster_select))
+    return render_template('index.html', sgform=sgform, cluster_reps=cluster_reps,
+                           select_list=list(sgform.cluster_select))
 
 if __name__ == '__main__':
-    app.run(debug=True, host='192.168.1.5')
+    app.run(debug=True)
