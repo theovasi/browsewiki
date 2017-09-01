@@ -31,17 +31,20 @@ def index():
         titles = []
         links = []
         summaries = []
-        selected_clusters = sgform.cluster_select.data
-        app.logger.debug(selected_clusters)
-        cluster_id = request.form['cluster_view']
-        dist = dist_space[:, int(cluster_id)] # Distances of the documents form the cluster center.
-        # Find the ids of the documents that belogn to this cluster.
-
-        doc_ids = dist.argsort()[:50]
-        for id in doc_ids:
-            titles.append(title_dict[id])
-            links.append(link_dict[id])
-            summaries.append(summary_dict[id])
+        if 'cluster_select' in request.form:
+            selected_clusters = sgform.cluster_select.data
+            app.logger.debug('\n\n\nSelected: ' + ' '.join(selected_clusters))
+        if 'cluster_view' in request.form:
+            cluster_id = request.form['cluster_view']
+            app.logger.debug('\n\n\nView: ' + cluster_id)
+            dist = dist_space[:, int(cluster_id)] # Distances of the documents form the cluster center.
+            # Find the ids of the documents that belogn to this cluster.
+            doc_ids = dist.argsort()[:50]
+            for id in doc_ids:
+                titles.append(title_dict[id])
+                links.append(link_dict[id])
+                summaries.append(summary_dict[id])
+        sgform.cluster_select.data = None
         return render_template('index.html', sgform=sgform, titles=titles,
                            links=links, summaries=summaries, cluster_reps=cluster_reps,
                            select_list=list(sgform.cluster_select))

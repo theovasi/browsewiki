@@ -35,21 +35,21 @@
             </div>
           </div>
         </nav>
-        <div class="container">
-            <form method="POST" id="sg-form" class="col-md-6 form-group" style="padding: 0;">
+        <div class="container" style="padding:0;">
+            <form method="POST" id="sg-form" class="col-md-6 form-group">
                 <div class="col menubar" style="height: 40px;">
                     <div class="btn-group">
                         <button class="btn btn-sm btn-success"><input type="submit" name="sgform" class="hidden">Browse</button>
                     </div>
                 </div>
                 {% for view_input in sgform.cluster_view %}
-                <div class="col-md-6 list-group-item" style="height: 140px; padding: 0;">
-                    <div class="cluster-rep" style="height:80%;">
-                        {{ cluster_reps[loop.index0][0] }}/ {{ cluster_reps[loop.index0][1] }} / {{ cluster_reps[loop.index0][2] }}
+                <div class="col-md-6 list-group-item" style="height: 140px; padding:0;">
+                    <div class="cluster-rep" style="height:100px; padding:0;">
+                        {{ cluster_reps[loop.index0][0] }} / {{ cluster_reps[loop.index0][1] }} / {{ cluster_reps[loop.index0][2] }}
                     </div>
-                    <div class="btn-group pull-right" data-toggle="buttons" style="height: 20%;">
-                        <label class="btn select-button">{{ select_list[loop.index0] }}Select</label>
-                        <label class="btn view-button">{{ view_input }}View</label>
+                    <div class="btn-group pull-right" data-toggle="buttons" style="height: 40px;">
+                        <label class="btn btn-default select-button" style="height:100%; text-align: center">{{ select_list[loop.index0] }}Select</label>
+                        <label class="btn btn-default view-button" style="height:100%;">{{ view_input }}View</label>
                     </div>
                 </div>
                 {% endfor %}
