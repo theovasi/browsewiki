@@ -19,7 +19,7 @@ summary_dict = joblib.load('data/summary_dict.txt')
 def index():
     sgform = ScatterGatherForm()
     cluster_reps = dict()
-    for i in range(12):
+    for i in range(10):
         terms = []
         topic_id = kmodel.cluster_centers_[i].argsort()[::-1][0]
         term_ids = lda_model.get_topic_terms(topic_id, topn=3)
