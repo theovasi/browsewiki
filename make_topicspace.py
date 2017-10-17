@@ -3,23 +3,18 @@ import math
 import argparse
 
 from toolset.corpus import Corpus as crp
-from tmp_gen import tmp_gen
-from toolset.corpus import tokenize
+from toolset.corpus import Corpus, tokenize
 from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 
 
-def make_topicspace(data_file_path):
+def make_topicspace(data_file_path, n_topics=300, method='lda'):
     # Allow gensim to print additional info while executing.
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-
-    # Tranform the collection from the format wikiextractor produces to a one
-    # document per file format.
-    if os.path.exists(data_file_path + '/formatted'):
-        corpus = crp(data_file_path + '/formatted')
-    else:
-        print('Error: Text collection directory not found.')
-        sys.exit(0)
+    if not os.path.exists(data_file_path+'/formatted'):
+        print('No corpus file found.')
+    collection = Corpus(data_file_path+'/formatted',
+                  filepath_dict_path=data_file_path+'/filepath_dict.txt')
 
     # First pass of the collection to create the dictionary.
     if not os.path.exists(data_file_path + '/dictionary.txt'):
@@ -29,7 +24,7 @@ def make_topicspace(data_file_path):
         max_batch_size = 20000
         batch = []
 
-        for i, text in enumerate(tmp_gen()):
+        for i, text in enumerate(collection.document_generator()):
             batch.append(tokenize(text))
             batch_size += 1
             if batch_size >= max_batch_size:
@@ -46,7 +41,7 @@ def make_topicspace(data_file_path):
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
         corpus = [dictionary.doc2bow(tokenize(text))
-                  for text in tmp_gen()]
+                  for text in collection.document_generator()]
         joblib.dump(corpus, data_file_path + '/corpus.txt')
 
     # Transform from BoW representation to tf-idf.
@@ -63,7 +58,6 @@ def make_topicspace(data_file_path):
 
     # Apply Latent Dirichlet Allocation.
     if not os.path.exists(data_file_path + '/lda_model.txt'):
-        print('Applying Latent Dirichlet Allocation')
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
         if not 'corpus' in locals():
@@ -71,12 +65,22 @@ def make_topicspace(data_file_path):
         if not 'tfidf' in locals():
             tfidf = joblib.load(data_file_path + '/tfidf_model.txt')
             corpus_tfidf = tfidf[corpus]
-        lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, id2word=dictionary,
-                                       num_topics=300, passes=2)
-        joblib.dump(lda, data_file_path + '/lda_model.txt')
-        corpus_lda = lda[corpus]
+        if method == 'lsa':
+            print('Applying Latent Semantic Analysis for {} topics.'.format(n_topics))
+            lsa = models.lsimodel.LsiModel(corpus=corpus_tfidf, id2word=dictionary,
+                                       num_topics=n_topics)
+            joblib.dump(lsa, data_file_path + '/lsa_model.txt')
+            transformed_corpus = lsa[corpus]
+        else:
+            print('Applying Latent Dirichlet Allocation for {} topics.'.format(n_topics))
+            lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, id2word=dictionary,
+                                       num_topics=n_topics, passes=2)
+            joblib.dump(lda, data_file_path + '/lda_model.txt')
+            transformed_corpus = lda[corpus]
+
         # Convert topic space matrix to sparse in the Compressed Sparse Row format.
-        topic_space = matutils.corpus2csc(corpus_lda)
+        topic_space = matutils.corpus2csc(transformed_corpus)
+
         # Transpose the topic space matrix because it will be used with sklearn and
         # it needs the documents in the rows.
         topic_space = scipy.sparse.csc_matrix.transpose(topic_space).tocsr()
@@ -85,15 +89,20 @@ def make_topicspace(data_file_path):
     # Apply clustering using KMeans
     if not 'topic_space' in locals():
         topic_space = joblib.load(data_file_path + '/topic_space.txt')
-    kmodel = mbk(n_clusters=12, verbose=True)
+    kmodel = mbk(n_clusters=10, verbose=True)
     kmodel.fit(topic_space)
     dist_space = kmodel.transform(topic_space)
     joblib.dump(kmodel, data_file_path + '/kmodel.txt')
     joblib.dump(dist_space, data_file_path + '/dist_space.txt')
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process input and output filepaths.')
+    parser = argparse.ArgumentParser(description='Process input filepath.')
     parser.add_argument('data_file_path', type=str,
                         help='The path to the data directory.')
+    parser.add_argument('-t', '--n_topics', type=int,
+                        help='The number of topics that will be extracted.')
+    parser.add_argument('-m', '--method', type=str,
+                        help='The topic modeling method to be used.')
     args = parser.parse_args()
-    make_topicspace(args.data_file_path)
+    make_topicspace(data_file_path=args.data_file_path,
+                    n_topics=args.n_topics, method=args.method)
