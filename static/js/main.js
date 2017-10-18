@@ -9,10 +9,11 @@ $(document).ready(function() {
 
     });
     $('.view-button').click(function() {
+        $('input[name=cluster_select]').removeAttr('checked')
         $('.view-button').removeClass('active');
         $(this).addClass('active');
+        $('#sg-form').submit();
     });
     $('.view-button').on('change', function() {
-        $('#sg-form').submit();
     });
 });

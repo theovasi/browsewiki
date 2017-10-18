@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request
 from flask_wtf import FlaskForm
 from forms import ScatterGatherForm
-import joblib
+import joblib, argparse
 import numpy as np
 import scipy.sparse as sp
 from sklearn.cluster import MiniBatchKMeans as mbk
@@ -9,21 +9,17 @@ from sklearn.cluster import MiniBatchKMeans as mbk
 
 app = Flask(__name__)
 app.secret_key = 'v3rys3cr3t'
-lda_model = joblib.load('data/lda_model.txt')
-dictionary = joblib.load('data/dictionary.txt')
-title_dict = joblib.load('data/title_dict.txt')
-link_dict = joblib.load('data/link_dict.txt')
-summary_dict = joblib.load('data/summary_dict.txt')
 
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     sgform = ScatterGatherForm()
     cluster_reps = dict()
-    tfidf_sparse = joblib.load('data/topic_space.txt')
-    kmodel = joblib.load('data/kmodel.txt')
-    dist_space = joblib.load('data/dist_space.txt')
     absolute_doc_id_dict = dict()
+    tfidf_sparse = joblib.load('{}/topic_space.txt'.format(args.data_file_path))
+    kmodel = joblib.load('{}/kmodel.txt'.format(args.data_file_path))
+    dist_space = joblib.load('{}/dist_space.txt'.format(args.data_file_path))
+
     for ind in range(tfidf_sparse.shape[0]):
         absolute_doc_id_dict[ind] = ind
     if request.method == 'POST':
@@ -42,14 +38,16 @@ def index():
                 for doc_id, cluster_id in enumerate(kmodel.labels_):
                     if cluster_id == int(selected_cluster_id):
                         tmp_dict[abs_ind] = absolute_doc_id_dict[doc_id]
-                        new_tfidf = sp.vstack((new_tfidf, tfidf_sparse[doc_id]), format='csr')
+                        new_tfidf = sp.vstack((new_tfidf, tfidf_sparse[doc_id]),
+                                              format='csr')
             tfidf_sparse = new_tfidf[1:]
             absolute_doc_id_dict = dict(tmp_dict)
-            kmodel = mbk(n_clusters=12, verbose=True)
+            kmodel = mbk(n_clusters=len(kmodel.cluster_centers_), max_iter=10,
+                         verbose=True)
             kmodel.fit(tfidf_sparse)
             dist_space = kmodel.transform(tfidf_sparse)
             print(dist_space.shape)
-            for i in range(10):
+            for i in range(len(kmodel.cluster_centers_)):
                 terms = []
                 topic_id = kmodel.cluster_centers_[i].argsort()[::-1][0]
                 term_ids = lda_model.get_topic_terms(topic_id, topn=3)
@@ -57,9 +55,6 @@ def index():
                     terms.append(dictionary[term_id[0]])
                 cluster_reps[i] = terms
 
-            return render_template('index.html', sgform=sgform, titles=titles,
-                               links=links, summaries=summaries, cluster_reps=cluster_reps,
-                               select_list=list(sgform.cluster_select))
             return render_template('index.html', sgform=sgform, titles=titles,
                                links=links, summaries=summaries, cluster_reps=cluster_reps,
                                select_list=list(sgform.cluster_select))
@@ -76,7 +71,7 @@ def index():
                 links.append(link_dict[absolute_doc_id_dict[id]])
                 summaries.append(summary_dict[absolute_doc_id_dict[id]])
             sgform.cluster_select.data = None
-            for i in range(12):
+            for i in range(len(kmodel.cluster_centers_)):
                 terms = []
                 topic_id = kmodel.cluster_centers_[i].argsort()[::-1][0]
                 term_ids = lda_model.get_topic_terms(topic_id, topn=3)
@@ -87,7 +82,8 @@ def index():
             return render_template('index.html', sgform=sgform, titles=titles,
                                links=links, summaries=summaries, cluster_reps=cluster_reps,
                                select_list=list(sgform.cluster_select))
-    for i in range(12):
+
+    for i in range(len(kmodel.cluster_centers_)):
         terms = []
         topic_id = kmodel.cluster_centers_[i].argsort()[::-1][0]
         term_ids = lda_model.get_topic_terms(topic_id, topn=3)
@@ -98,4 +94,13 @@ def index():
                            select_list=list(sgform.cluster_select))
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser('Process command line arguments.')
+    parser.add_argument('data_file_path', type=str,
+                        help='Path to the data file.')
+    args = parser.parse_args()
+    lda_model = joblib.load('{}/lda_model.txt'.format(args.data_file_path))
+    dictionary = joblib.load('{}/dictionary.txt'.format(args.data_file_path))
+    title_dict = joblib.load('{}/title_dict.txt'.format(args.data_file_path))
+    link_dict = joblib.load('{}/link_dict.txt'.format(args.data_file_path))
+    summary_dict = joblib.load('{}/summary_dict.txt'.format(args.data_file_path))
     app.run(debug=True)
