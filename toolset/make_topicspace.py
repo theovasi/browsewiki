@@ -2,13 +2,13 @@ import os, sys, joblib, logging, scipy
 import math
 import argparse
 
-from toolset.corpus import Corpus as crp
-from toolset.corpus import Corpus, tokenize
+from corpus import Corpus as crp
+from corpus import Corpus, tokenize
 from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 
 
-def make_topicspace(data_file_path, n_topics=300, method='lda'):
+def make_topicspace(data_file_path, n_topics=300, method='lda', n_clusters=8):
     # Allow gensim to print additional info while executing.
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     if not os.path.exists(data_file_path+'/formatted'):
@@ -89,7 +89,7 @@ def make_topicspace(data_file_path, n_topics=300, method='lda'):
     # Apply clustering using KMeans
     if not 'topic_space' in locals():
         topic_space = joblib.load(data_file_path + '/topic_space.txt')
-    kmodel = mbk(n_clusters=10, verbose=True)
+    kmodel = mbk(n_clusters=n_clusters, verbose=True)
     kmodel.fit(topic_space)
     dist_space = kmodel.transform(topic_space)
     joblib.dump(kmodel, data_file_path + '/kmodel.txt')
@@ -103,6 +103,8 @@ if __name__ == '__main__':
                         help='The number of topics that will be extracted.')
     parser.add_argument('-m', '--method', type=str,
                         help='The topic modeling method to be used.')
+    parser.add_argument('-k', '--n_clusters', type=int ,
+                        help='The number of clusters to be created.')
     args = parser.parse_args()
     make_topicspace(data_file_path=args.data_file_path,
-                    n_topics=args.n_topics, method=args.method)
+                    n_topics=args.n_topics, method=args.method, n_clusters=args.n_clusters)

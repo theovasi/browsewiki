@@ -41,7 +41,8 @@ def wiki_format(text_file_path,
     link_dict = dict()
     summary_dict = dict()
     filepath_dict = dict()
-    ignore_list = joblib.load(ignore_list_path)
+    if ignore_list_path is not None:
+        ignore_list = joblib.load(ignore_list_path)
     start_time = time.time()
 
     for document_folder in os.listdir(text_file_path):
@@ -78,7 +79,7 @@ def wiki_format(text_file_path,
                     doc_text = doc.text.splitlines()
                     title = doc_text[1]
                     # Skip document if it is in the ignore list.
-                    if title in ignore_list:
+                    if ignore_list_path is not None and title in ignore_list:
                         n_ignored_docs += 1
                         continue
                     link = title.replace(' ', '_')
@@ -123,7 +124,6 @@ def wiki_format(text_file_path,
     joblib.dump(filepath_dict, output_file_path + '/filepath_dict.txt')
     print('{} documents processed , {} added to the collection, {} ignored.'.format(n_docs+n_ignored_docs,
           n_docs, n_ignored_docs))
-
 
 
 if __name__ == '__main__':
