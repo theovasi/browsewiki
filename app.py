@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, session
 from flask_wtf import FlaskForm
 from forms import ScatterGatherForm
 import joblib, argparse
@@ -13,12 +13,15 @@ app.secret_key = 'v3rys3cr3t'
 @app.route('/')
 @app.route('/index', methods=['GET', 'POST'])
 def index():
-    sgform = ScatterGatherForm()
     cluster_reps = dict()
     absolute_doc_id_dict = dict()
     tfidf_sparse = joblib.load('{}/topic_space.txt'.format(args.data_file_path))
     kmodel = joblib.load('{}/kmodel.txt'.format(args.data_file_path))
     dist_space = joblib.load('{}/dist_space.txt'.format(args.data_file_path))
+    sgform = ScatterGatherForm()
+    n_clusters = len(kmodel.cluster_centers_)
+    sgform.cluster_select.choices=[(i, 'cluster_{}'.format(i)) for i in range(n_clusters)]
+    sgform.cluster_view.choices=[(i, 'cluster_{}'.format(i)) for i in range(n_clusters)]
 
     for ind in range(tfidf_sparse.shape[0]):
         absolute_doc_id_dict[ind] = ind
@@ -28,7 +31,6 @@ def index():
         links = []
         summaries = []
         if 'cluster_select' in request.form:
-            print('Selected...')
             selected_clusters = sgform.cluster_select.data
             app.logger.debug('\n\n\nSelected: ' + ' '.join(selected_clusters))
             new_tfidf = []
@@ -60,7 +62,6 @@ def index():
                                select_list=list(sgform.cluster_select))
 
         if 'cluster_view' in request.form:
-            print('View...')
             cluster_id = request.form['cluster_view']
             app.logger.debug('\n\n\nView: ' + cluster_id)
             dist = dist_space[:, int(cluster_id)] # Distances of the documents form the cluster center.
