@@ -21,7 +21,7 @@ def make_topicspace(data_file_path, n_topics=300, method='lda', n_clusters=8):
         print('Generating dictionary...')
         dictionary = corpora.Dictionary()
         batch_size = 0
-        max_batch_size = 20000
+        max_batch_size = 2000
         batch = []
 
         for i, text in enumerate(collection.document_generator()):
@@ -69,13 +69,13 @@ def make_topicspace(data_file_path, n_topics=300, method='lda', n_clusters=8):
             print('Applying Latent Semantic Analysis for {} topics.'.format(n_topics))
             lsa = models.lsimodel.LsiModel(corpus=corpus_tfidf, id2word=dictionary,
                                        num_topics=n_topics)
-            joblib.dump(lsa, data_file_path + '/lsa_model.txt')
+            joblib.dump(lsa, data_file_path + '/topic_model.txt')
             transformed_corpus = lsa[corpus]
         else:
             print('Applying Latent Dirichlet Allocation for {} topics.'.format(n_topics))
             lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, id2word=dictionary,
                                        num_topics=n_topics, passes=2)
-            joblib.dump(lda, data_file_path + '/lda_model.txt')
+            joblib.dump(lda, data_file_path + '/topic_model.txt')
             transformed_corpus = lda[corpus]
 
         # Convert topic space matrix to sparse in the Compressed Sparse Row format.
@@ -89,7 +89,7 @@ def make_topicspace(data_file_path, n_topics=300, method='lda', n_clusters=8):
     # Apply clustering using KMeans
     if not 'topic_space' in locals():
         topic_space = joblib.load(data_file_path + '/topic_space.txt')
-    kmodel = mbk(n_clusters=n_clusters, verbose=True)
+    kmodel = mbk(n_clusters=n_clusters, n_init=10, reassignment_ratio=0.03, verbose=True)
     kmodel.fit(topic_space)
     dist_space = kmodel.transform(topic_space)
     joblib.dump(kmodel, data_file_path + '/kmodel.txt')
