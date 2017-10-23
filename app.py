@@ -45,6 +45,7 @@ def index():
                     titles.append(app.config['titles'][i])
                     summaries.append(app.config['summaries'][i])
                     links.append(app.config['links'][i])
+
             app.config['doc_ids'] = doc_ids # This is the new scatter document collection.
             app.config['titles'] = titles
             app.config['summaries'] = summaries 
@@ -58,7 +59,7 @@ def index():
                     scatter_vector_space = sp.csr.csr_matrix(doc_vector)
                 else:
                     scatter_vector_space = vstack([scatter_vector_space, doc_vector], format='csr')
-            app.config['vector_space'] = scatter_vector_space
+            app.config['vector_space'] = scatter_vector_space 
 
             # Perform the clustering using the new vector space.
             kmodel = mbk(n_clusters=app.config['k'], max_iter=10)
@@ -66,12 +67,20 @@ def index():
             app.config['kmodel'] = kmodel
             app.config['dist_space'] = kmodel.transform(scatter_vector_space)
 
+            # Count number of documents in each cluster.
+            cluster_doc_counts = [0 for i in range(len(app.config['kmodel'].cluster_centers_))]
+            for label in app.config['kmodel'].labels_:
+                cluster_doc_counts[label] += 1
+            app.config['cluster_doc_counts'] = cluster_doc_counts
+            
+
             # Get the representations of the clusters.
             for cluster_id in range(len(kmodel.cluster_centers_)):
                 app.config['cluster_reps'] = get_cluster_reps(kmodel)
 
             return render_template('index.html', sgform=sgform, cluster_reps=app.config['cluster_reps'],
-                                   select_list=list(sgform.cluster_select))
+                                   select_list=list(sgform.cluster_select),
+                                   cluster_doc_counts=app.config['cluster_doc_counts'])
 
         elif 'cluster_view' in request.form:
             nearest_titles = []
@@ -89,12 +98,21 @@ def index():
 
             return render_template('index.html', sgform=sgform, cluster_reps=app.config['cluster_reps'],
                                    select_list=list(sgform.cluster_select), titles=nearest_titles,
-                                   summaries=nearest_summaries, links=nearest_links)
+                                   summaries=nearest_summaries, links=nearest_links,
+                                   cluster_doc_counts=app.config['cluster_doc_counts'])
             
 
     app.config['cluster_reps'] = get_cluster_reps(app.config['kmodel'])
+
+    # Count number of documents in each cluster.
+    cluster_doc_counts = [0 for i in range(len(app.config['kmodel'].cluster_centers_))]
+    for label in app.config['kmodel'].labels_:
+        cluster_doc_counts[label] += 1
+    app.config['cluster_doc_counts'] = cluster_doc_counts
+
     return render_template('index.html', sgform=sgform, cluster_reps=app.config['cluster_reps'],
-                           select_list=list(sgform.cluster_select))
+                           select_list=list(sgform.cluster_select),
+                           cluster_doc_counts=app.config['cluster_doc_counts'])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser('Process command line arguments.')

@@ -14,3 +14,10 @@
 .menubar {
     padding-top: 5px;
 }
+
+.bottom-align-text {
+    position: absolute;
+    bottom: 0;
+    padding-left: 5px;
+    color: #747474;
+}
