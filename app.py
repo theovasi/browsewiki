@@ -91,7 +91,7 @@ def index():
 
             # Get the representations of the clusters.
             for cluster_id in range(len(kmodel.cluster_centers_)):
-                session['cluster_reps'] = get_cluster_reps(kmodel)
+                session['cluster_reps'] = get_cluster_reps(session['kmodel'], session['dist_space'])
 
             return render_template('index.html', sgform=sgform, cluster_reps=session['cluster_reps'],
                                    select_list=list(sgform.cluster_select),
@@ -106,7 +106,13 @@ def index():
             dist_vector = session['dist_space'][:, int(cluster_view_id)]
             # The ids of the document nearest to the cluster center.
             nearest_doc_ids = dist_vector.argsort()[:50]
+            filtered_nearest_doc_ids = []
             for doc_id in nearest_doc_ids:
+                # Only keep documents that belong to the cluster in question.
+                if session['kmodel'].labels_[doc_id] == int(cluster_view_id):
+                    filtered_nearest_doc_ids.append(doc_id)
+
+            for doc_id in filtered_nearest_doc_ids:
                 nearest_titles.append(session['titles'][doc_id])
                 nearest_summaries.append(session['summaries'][doc_id])
                 nearest_links.append(session['links'][doc_id])
@@ -117,7 +123,7 @@ def index():
                                    cluster_doc_counts=session['cluster_doc_counts'])
             
 
-    session['cluster_reps'] = get_cluster_reps(session['kmodel'])
+    session['cluster_reps'] = get_cluster_reps(session['kmodel'], session['dist_space'])
 
     # Count number of documents in each cluster.
     cluster_doc_counts = [0 for i in range(len(session['kmodel'].cluster_centers_))]
