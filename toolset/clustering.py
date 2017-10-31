@@ -35,7 +35,7 @@ def tokenize(text):
     ]
     # Remove tokens that do not contain letters.
     for token in tokens:
-        if re.search('[α-ωΑ-Ω]', token):
+        if not re.search('^\d*$', token):
             filtered_tokens.append(token)
     return filtered_tokens
 
