@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from xml.sax.saxutils import escape
 import joblib
 import argparse
+import re
 
 
 def wiki_format(text_file_path,
@@ -82,8 +83,14 @@ def wiki_format(text_file_path,
                     if ignore_list_path is not None and title in ignore_list:
                         n_ignored_docs += 1
                         continue
+
+                    # Skip document if its title contains only numbers.
+                    if re.search('^\d*$', title.replace(' ', '')):
+                        n_ignored_docs += 1
+                        continue
+
                     link = title.replace(' ', '_')
-                    summary = doc_text[3][:140]
+                    summary = doc_text[3][:160]
                     # Save each document in a separate file.
                     filepath = '/'.join([
                         output_file_path, 'formatted', document_folder,
