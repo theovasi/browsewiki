@@ -15,20 +15,20 @@ def get_cluster_reps(kmodel, dist_space):
             
     """
     cluster_reps = []
-    if os.path.exists('test_data/dictionary.txt'):
-        dictionary = joblib.load('test_data/dictionary.txt')
+    if os.path.exists('data/dictionary.txt'):
+        dictionary = joblib.load('data/dictionary.txt')
     else:
         print('No dictionary file found.')
         sys.exit(0)
 
-    if os.path.exists('test_data/tfidf_sparse.txt'):
-        tfidf = joblib.load('test_data/tfidf_sparse.txt')
+    if os.path.exists('data/tfidf_sparse.txt'):
+        tfidf = joblib.load('data/tfidf_sparse.txt')
     else:
         print('No topic model file found.')
         sys.exit(0)
 
-    if os.path.exists('test_data/topic_model.txt'):
-        topic_model = joblib.load('test_data/topic_model.txt')
+    if os.path.exists('data/topic_model.txt'):
+        topic_model = joblib.load('data/topic_model.txt')
     else:
         print('No topic model file found.')
         sys.exit(0)
