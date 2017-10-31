@@ -1,0 +1,23 @@
+X-Client-Ip: 2.85.172.220
+Last-Modified: Wed, 25 Oct 2017 04:56:49 GMT
+X-Varnish: 390689934, 188351321 141934688, 282214357 242623034
+Link: </static/images/project-logos/elwiki.png>;rel=preload;as=image;media=not all and (min-resolution: 1.5dppx),</static/images/project-logos/elwiki-1.5x.png>;rel=preload;as=image;media=(min-resolution: 1.5dppx) and (max-resolution: 1.999999dppx),</static/images/project-logos/elwiki-2x.png>;rel=preload;as=image;media=(min-resolution: 2dppx)
+Content-Language: el
+Accept-Ranges: bytes
+P3P: CP="This is not a P3P policy! See https://el.wikipedia.org/wiki/%CE%95%CE%B9%CE%B4%CE%B9%CE%BA%CF%8C:CentralAutoLogin/P3P for more info."
+Backend-Timing: D=146644 t=1508944595317666
+X-Content-Type-Options: nosniff
+Via: 1.1 varnish-v4, 1.1 varnish-v4, 1.1 varnish-v4
+Content-Type: text/html; charset=UTF-8
+Age: 6485
+X-Cache-Status: hit
+Strict-Transport-Security: max-age=106384710; includeSubDomains; preload
+Cache-Control: private, s-maxage=0, max-age=0, must-revalidate
+Content-Encoding: gzip
+Date: Wed, 25 Oct 2017 17:04:42 GMT
+X-Analytics: ns=14;page_id=2389;WMF-Last-Access=25-Oct-2017;WMF-Last-Access-Global=25-Oct-2017;https=1
+X-Cache: cp1066 pass, cp3033 hit/4, cp3042 hit/15
+Vary: Accept-Encoding,Cookie,Authorization
+X-Powered-By: HHVM/3.18.6-dev
+Server: mw1263.eqiad.wmnet
+X-Ua-Compatible: IE=Edge

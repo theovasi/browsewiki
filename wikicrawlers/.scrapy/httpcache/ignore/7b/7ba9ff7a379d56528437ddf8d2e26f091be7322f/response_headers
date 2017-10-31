@@ -1,0 +1,26 @@
+X-Client-Ip: 2.85.172.220
+Last-Modified: Mon, 03 Oct 2016 14:26:14 GMT
+X-Varnish: 278954922 265227200, 393962243 411558552, 286805651 233657536
+Accept-Ranges: bytes
+X-Article-Id: 119755
+P3P: CP="This is not a P3P policy! See https://el.wikipedia.org/wiki/%CE%95%CE%B9%CE%B4%CE%B9%CE%BA%CF%8C:CentralAutoLogin/P3P for more info."
+Content-Type: text/plain; charset=utf-8
+X-Language: el
+X-Content-Type-Options: nosniff
+Via: 1.1 varnish-v4, 1.1 varnish-v4, 1.1 varnish-v4
+Set-Cookie: WMF-Last-Access=25-Oct-2017;Path=/;HttpOnly;secure;Expires=Sun, 26 Nov 2017 12:00:00 GMT
+Set-Cookie: WMF-Last-Access-Global=25-Oct-2017;Path=/;Domain=.wikipedia.org;HttpOnly;secure;Expires=Sun, 26 Nov 2017 12:00:00 GMT
+Set-Cookie: GeoIP=GR:A:Xanthi:41.14:24.88:v4; Path=/; secure; Domain=.wikipedia.org
+Backend-Timing: D=28425 t=1507836951252513
+Age: 2148
+X-Cache-Status: hit
+Strict-Transport-Security: max-age=106384710; includeSubDomains; preload
+Cache-Control: s-maxage=3600, must-revalidate, max-age=0
+Content-Encoding: gzip
+Date: Wed, 25 Oct 2017 17:04:39 GMT
+X-Analytics: https=1;nocookies=1
+X-Cache: cp1065 hit/1, cp3031 hit/1, cp3042 hit/62
+Vary: X-Subdomain, Accept-Encoding
+X-Powered-By: HHVM/3.18.6-dev
+Server: mw1251.eqiad.wmnet
+X-Site: wikipedia
