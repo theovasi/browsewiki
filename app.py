@@ -31,22 +31,26 @@ def session_init():
     session['k'] = app.config['k']
     return redirect(url_for('index'))
 
+
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     app.logger.debug(session['uid'])
     sgform = ScatterGatherForm()
-    # Initialize cluster select/view form dynamically depending on the number of clusters.
+    # Initialize cluster select/view form dynamically depending on the number
+    # of clusters.
     n_clusters = len(app.config['kmodel'].cluster_centers_)
-    sgform.cluster_select.choices=[(i, 'cluster_{}'.format(i)) for i in range(n_clusters)]
-    sgform.cluster_view.choices=[(i, 'cluster_{}'.format(i)) for i in range(n_clusters)]
+    sgform.cluster_select.choices=[(i, 'cluster_{}'.format(i))
+                                   for i in range(n_clusters)]
+    sgform.cluster_view.choices=[(i, 'cluster_{}'.format(i))
+                                 for i in range(n_clusters)]
     # Keep the ids of the documents used in this scatter iteration in a list.
 
     if request.method == 'POST':
         if 'cluster_select' in request.form:
-            selected_clusters = sgform.cluster_select.data 
+            selected_clusters = sgform.cluster_select.data
             app.logger.debug(selected_clusters)
-            # Get assignments of documents to clusters in a vector of cluster ids where
-            # the document ids are the indices.
+            # Get assignments of documents to clusters in a vector of cluster
+            # ids where the document ids are the indices.
             labels = session['kmodel'].labels_
 
             # Gather the documents that are assigned to the selected clusters.
@@ -61,20 +65,22 @@ def index():
                     summaries.append(session['summaries'][i])
                     links.append(session['links'][i])
 
-            session['doc_ids'] = doc_ids # This is the new scatter document collection.
+            # This is the new scatter document collection.
+            session['doc_ids'] = doc_ids
             session['titles'] = titles
-            session['summaries'] = summaries 
-            session['links'] = links 
+            session['summaries'] = summaries
+            session['links'] = links
 
-            # Create a new topic space matrix by selecting only the vector representations
-            # of the new scatter collection documents.
+            # Create a new topic space matrix by selecting only the vector
+            # representations of the new scatter collection documents.
             for doc_id in session['doc_ids']:
                 doc_vector = session['vector_space'].getrow(doc_id)
                 if 'scatter_vector_space' not in locals():
                     scatter_vector_space = sp.csr.csr_matrix(doc_vector)
                 else:
-                    scatter_vector_space = vstack([scatter_vector_space, doc_vector], format='csr')
-            session['vector_space'] = scatter_vector_space 
+                    scatter_vector_space =\
+                        vstack([scatter_vector_space, doc_vector], format='csr')
+            session['vector_space'] = scatter_vector_space
 
             # Perform the clustering using the new vector space.
             kmodel = mbk(n_clusters=session['k'], max_iter=10)
@@ -83,19 +89,24 @@ def index():
             session['dist_space'] = kmodel.transform(scatter_vector_space)
 
             # Count number of documents in each cluster.
-            cluster_doc_counts = [0 for i in range(len(session['kmodel'].cluster_centers_))]
+            cluster_doc_counts = [0 for i in range(
+                                  len(session['kmodel'].cluster_centers_))]
             for label in session['kmodel'].labels_:
                 cluster_doc_counts[label] += 1
             session['cluster_doc_counts'] = cluster_doc_counts
-            
+
 
             # Get the representations of the clusters.
             for cluster_id in range(len(kmodel.cluster_centers_)):
-                session['cluster_reps'] = get_cluster_reps(session['kmodel'], session['dist_space'])
+                session['cluster_reps'] =\
+                    get_cluster_reps(session['kmodel'], session['dist_space'],
+                                     app.config['data_file_path'])
 
-            return render_template('index.html', sgform=sgform, cluster_reps=session['cluster_reps'],
+            return render_template('index.html', sgform=sgform,
+                                   cluster_reps=session['cluster_reps'],
                                    select_list=list(sgform.cluster_select),
-                                   cluster_doc_counts=session['cluster_doc_counts'])
+                                   cluster_doc_counts=\
+                                   session['cluster_doc_counts'])
 
         elif 'cluster_view' in request.form:
             nearest_titles = []
@@ -117,21 +128,29 @@ def index():
                 nearest_summaries.append(session['summaries'][doc_id])
                 nearest_links.append(session['links'][doc_id])
 
-            return render_template('index.html', sgform=sgform, cluster_reps=session['cluster_reps'],
-                                   select_list=list(sgform.cluster_select), titles=nearest_titles,
-                                   summaries=nearest_summaries, links=nearest_links,
-                                   cluster_doc_counts=session['cluster_doc_counts'])
-            
+            return render_template('index.html', sgform=sgform,
+                                   cluster_reps=session['cluster_reps'],
+                                   select_list=list(sgform.cluster_select),
+                                   titles=nearest_titles,
+                                   summaries=nearest_summaries,
+                                   links=nearest_links,
+                                   cluster_doc_counts=\
+                                   session['cluster_doc_counts'])
 
-    session['cluster_reps'] = get_cluster_reps(session['kmodel'], session['dist_space'])
+
+    session['cluster_reps'] = get_cluster_reps(session['kmodel'],
+                                               session['dist_space'],
+                                               app.config['data_file_path'])
 
     # Count number of documents in each cluster.
-    cluster_doc_counts = [0 for i in range(len(session['kmodel'].cluster_centers_))]
+    cluster_doc_counts = [0 for i in range(
+                          len(session['kmodel'].cluster_centers_))]
     for label in session['kmodel'].labels_:
         cluster_doc_counts[label] += 1
     session['cluster_doc_counts'] = cluster_doc_counts
 
-    return render_template('index.html', sgform=sgform, cluster_reps=session['cluster_reps'],
+    return render_template('index.html', sgform=sgform,
+                           cluster_reps=session['cluster_reps'],
                            select_list=list(sgform.cluster_select),
                            cluster_doc_counts=session['cluster_doc_counts'])
 
@@ -154,13 +173,17 @@ if __name__ == '__main__':
         titles.append(title_dict[i])
         summaries.append(summary_dict[i])
         links.append(link_dict[i])
+    app.config['data_file_path'] = args.data_file_path
     app.config['doc_ids'] = doc_ids
     app.config['titles'] = titles
     app.config['summaries'] = summaries
     app.config['links'] = links
-    app.config['vector_space'] = joblib.load('{}/topic_space.txt'.format(args.data_file_path))
-    app.config['kmodel'] = joblib.load('{}/kmodel.txt'.format(args.data_file_path))
-    app.config['dist_space'] = joblib.load('{}/dist_space.txt'.format(args.data_file_path))
+    app.config['vector_space'] =\
+        joblib.load('{}/topic_space.txt'.format(args.data_file_path))
+    app.config['kmodel'] =\
+        joblib.load('{}/kmodel.txt'.format(args.data_file_path))
+    app.config['dist_space'] =\
+        joblib.load('{}/dist_space.txt'.format(args.data_file_path))
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
     app.config['cluster_reps'] = None
