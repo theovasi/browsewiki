@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 """ Provides methods for applying clustering on a text document collection.
 """
-import joblib
-import re
-import time
-
-import nltk
+import joblib, re, time, nltk, json
 import pandas as pd
 from nltk.stem.snowball import SnowballStemmer
 from sklearn.cluster import AgglomerativeClustering, MiniBatchKMeans
@@ -28,6 +24,8 @@ def tokenize(text):
 
     """
     filtered_tokens = []
+    with open('node_modules/stopwords-el/stopwords-el.json') as json_data:
+        stopwords = json.load(json_data)
     tokens = [
         word.lower()
         for sent in nltk.sent_tokenize(text)
@@ -35,7 +33,7 @@ def tokenize(text):
     ]
     # Remove tokens that do not contain letters.
     for token in tokens:
-        if not re.search('^\d*$', token):
+        if not re.search('^\d*$', token) and not token in stopwords:
             filtered_tokens.append(token)
     return filtered_tokens
 
