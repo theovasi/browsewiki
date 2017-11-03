@@ -33,7 +33,8 @@ def tokenize(text):
     ]
     # Remove tokens that do not contain letters.
     for token in tokens:
-        if not re.search('^\d*$', token) and not token in stopwords:
+        if not re.search('^\d*$', token) and not token in stopwords\
+           and not re.search ('[.,!?\"\'-]', token):
             filtered_tokens.append(token)
     return filtered_tokens
 
