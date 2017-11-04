@@ -10,6 +10,7 @@ from sklearn.feature_extraction.text import HashingVectorizer, TfidfTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import Normalizer
+from toolset import mogreltk
 
 
 def tokenize(text):
@@ -24,8 +25,10 @@ def tokenize(text):
 
     """
     filtered_tokens = []
-    with open('node_modules/stopwords-el/stopwords-el.json') as json_data:
-        stopwords = json.load(json_data)
+    with open('el-stopwords.txt') as file_data:
+        stopwords = file_data.read().splitlines()
+    stopwords = [mogreltk.normalize(stopword) for stopword in stopwords]
+
     tokens = [
         word.lower()
         for sent in nltk.sent_tokenize(text)
@@ -33,8 +36,9 @@ def tokenize(text):
     ]
     # Remove tokens that do not contain letters.
     for token in tokens:
-        if not re.search('^\d*$', token) and not token in stopwords\
-           and not re.search ('[.,!?\"\'-]', token):
+        if not re.search('^\d*$', token)\
+           and not mogreltk.normalize(token) in stopwords\
+           and not re.search('[.,!;:\"\'-«»]', token):
             filtered_tokens.append(token)
     return filtered_tokens
 
