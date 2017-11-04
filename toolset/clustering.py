@@ -13,21 +13,20 @@ from sklearn.preprocessing import Normalizer
 from toolset import mogreltk
 
 
-def tokenize(text):
+def tokenize(text, stopwords_file_path=None):
     """ Takes a String as input and returns a list of its tokens.
 
         Args:
-            text (str): A string object.
-
+            text (str): The text to be tokenized.
         Returns:
-            filtered_tokens: A list of the tokens in the string after removing
-                duplicates and tokens that contain only numbers.
-
+            filtered_tokens: The original text as a list of tokens excluding stopwords,
+                punctuation and numbers.
     """
     filtered_tokens = []
-    with open('el-stopwords.txt') as file_data:
-        stopwords = file_data.read().splitlines()
-    stopwords = [mogreltk.normalize(stopword) for stopword in stopwords]
+    if stopwords_file_path is not None:
+        with open(stopwords_file_path) as file_data:
+            stopwords = file_data.read().splitlines()
+        stopwords = [mogreltk.normalize(stopword) for stopword in stopwords]
 
     tokens = [
         word.lower()
@@ -37,7 +36,7 @@ def tokenize(text):
     # Remove tokens that do not contain letters.
     for token in tokens:
         if not re.search('^\d*$', token)\
-           and not mogreltk.normalize(token) in stopwords\
+           and not (stopwords_file_path is not None and mogreltk.normalize(token) in stopwords)\
            and not re.search('[.,!;:\"\'-«»]', token):
             filtered_tokens.append(token)
     return filtered_tokens
