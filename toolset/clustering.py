@@ -13,35 +13,6 @@ from sklearn.preprocessing import Normalizer
 from toolset import mogreltk
 
 
-def tokenize(text, stopwords_file_path=None):
-    """ Takes a String as input and returns a list of its tokens.
-
-        Args:
-            text (str): The text to be tokenized.
-        Returns:
-            filtered_tokens: The original text as a list of tokens excluding stopwords,
-                punctuation and numbers.
-    """
-    filtered_tokens = []
-    if stopwords_file_path is not None:
-        with open(stopwords_file_path) as file_data:
-            stopwords = file_data.read().splitlines()
-        stopwords = [mogreltk.normalize(stopword) for stopword in stopwords]
-
-    tokens = [
-        word.lower()
-        for sent in nltk.sent_tokenize(text)
-        for word in nltk.word_tokenize(sent)
-    ]
-    # Remove tokens that do not contain letters.
-    for token in tokens:
-        if not re.search('^\d*$', token)\
-           and not (stopwords_file_path is not None and mogreltk.normalize(token) in stopwords)\
-           and not re.search('[.,!;:\"\'-«»]', token):
-            filtered_tokens.append(token)
-    return filtered_tokens
-
-
 def stem(tokens):
     """ Takes a list of tokens as input and stems each entry.
 
