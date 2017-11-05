@@ -2,19 +2,20 @@ import os, sys, joblib, logging, scipy
 import math
 import argparse
 
-from corpus import Corpus as crp
-from corpus import Corpus, tokenize
+from corpus import Corpus
+from mogreltk import tokenize
 from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 
 
-def make_topicspace(data_file_path, n_topics=300, method='lda', n_clusters=8):
+def make_topicspace(data_file_path, stopwords_file_path=None,
+                    n_topics=300, method='lda', n_clusters=8):
     # Allow gensim to print additional info while executing.
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     if not os.path.exists(data_file_path+'/formatted'):
         print('No corpus file found.')
     collection = Corpus(data_file_path+'/formatted',
-                  filepath_dict_path=data_file_path+'/filepath_dict.txt')
+                        filepath_dict_path=data_file_path+'/filepath_dict.txt')
 
     # First pass of the collection to create the dictionary.
     if not os.path.exists(data_file_path + '/dictionary.txt'):
@@ -25,7 +26,10 @@ def make_topicspace(data_file_path, n_topics=300, method='lda', n_clusters=8):
         batch = []
 
         for i, text in enumerate(collection.document_generator()):
-            batch.append(tokenize(text))
+            if stopwords_file_path is not None:
+                batch.append(tokenize(text, stopwords_file_path))
+            else:
+                batch.append(tokenize(text))
             batch_size += 1
             if batch_size >= max_batch_size:
                 dictionary.add_documents(batch, prune_at=10000)
@@ -40,8 +44,12 @@ def make_topicspace(data_file_path, n_topics=300, method='lda', n_clusters=8):
         print('Generating corpus...')
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
-        corpus = [dictionary.doc2bow(tokenize(text))
-                  for text in collection.document_generator()]
+        if stopwords_file_path is not None:
+            corpus = [dictionary.doc2bow(tokenize(text, stopwords_file_path))
+                      for text in collection.document_generator()]
+        else:
+            corpus = [dictionary.doc2bow(tokenize(text))
+                      for text in collection.document_generator()]
         joblib.dump(corpus, data_file_path + '/corpus.txt')
 
     # Transform from BoW representation to tf-idf.
@@ -68,13 +76,13 @@ def make_topicspace(data_file_path, n_topics=300, method='lda', n_clusters=8):
         if method == 'lsa':
             print('Applying Latent Semantic Analysis for {} topics.'.format(n_topics))
             lsa = models.lsimodel.LsiModel(corpus=corpus_tfidf, id2word=dictionary,
-                                       num_topics=n_topics)
+                                           num_topics=n_topics)
             joblib.dump(lsa, data_file_path + '/topic_model.txt')
             transformed_corpus = lsa[corpus]
         else:
             print('Applying Latent Dirichlet Allocation for {} topics.'.format(n_topics))
             lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, id2word=dictionary,
-                                       num_topics=n_topics, passes=2)
+                                           num_topics=n_topics, passes=2)
             joblib.dump(lda, data_file_path + '/topic_model.txt')
             transformed_corpus = lda[corpus]
 
@@ -99,6 +107,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process input filepath.')
     parser.add_argument('data_file_path', type=str,
                         help='The path to the data directory.')
+    parser.add_argument('-s', '--stop', type=str,
+                        help='The path to the stopwords file.')
     parser.add_argument('-t', '--n_topics', type=int,
                         help='The number of topics that will be extracted.')
     parser.add_argument('-m', '--method', type=str,
@@ -106,5 +116,5 @@ if __name__ == '__main__':
     parser.add_argument('-k', '--n_clusters', type=int ,
                         help='The number of clusters to be created.')
     args = parser.parse_args()
-    make_topicspace(data_file_path=args.data_file_path,
+    make_topicspace(data_file_path=args.data_file_path, stopwords_file_path=args.stop,
                     n_topics=args.n_topics, method=args.method, n_clusters=args.n_clusters)

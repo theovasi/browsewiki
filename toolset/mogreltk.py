@@ -1,6 +1,7 @@
 """ This module offers a number tools for processing modern Greek text. """
 import re
 from nltk import sent_tokenize, word_tokenize
+from greek_stemmer import GreekStemmer
 
 def normalize(text):
     """ Remove intonation from Greek text.
@@ -37,6 +38,7 @@ def tokenize(text, stopwords_file_path=None):
                 punctuation and numbers.
     """
     filtered_tokens = []
+    stem = GreekStemmer().stem
     if stopwords_file_path is not None:
         with open(stopwords_file_path) as file_data:
             stopwords = file_data.read().splitlines()
@@ -52,5 +54,5 @@ def tokenize(text, stopwords_file_path=None):
         if not re.search('^\d*$', token)\
            and not (stopwords_file_path is not None and normalize(token) in stopwords)\
            and not re.search('[.,!;:\"\'-«»]', token):
-            filtered_tokens.append(token)
+            filtered_tokens.append(stem(normalize(token).upper()).lower())
     return filtered_tokens

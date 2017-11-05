@@ -4,7 +4,6 @@
 import os, shutil, time
 import itertools, joblib
 import pandas as pd
-from clustering import stem, tokenize
 
 
 class Corpus(object):
