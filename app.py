@@ -46,7 +46,9 @@ def index():
     # Keep the ids of the documents used in this scatter iteration in a list.
 
     if request.method == 'POST':
+        app.logger.debug(request.form)
         if 'cluster_select' in request.form:
+            app.logger.debug('Select')
             selected_clusters = sgform.cluster_select.data
             app.logger.debug(selected_clusters)
             # Get assignments of documents to clusters in a vector of cluster
@@ -113,6 +115,7 @@ def index():
             nearest_summaries = []
             nearest_links = []
             cluster_view_id = sgform.cluster_view.data[0]
+            app.logger.debug(cluster_view_id)
             # Vector of document distances from the cluster center.
             dist_vector = session['dist_space'][:, int(cluster_view_id)]
             # The ids of the document nearest to the cluster center.
@@ -187,4 +190,4 @@ if __name__ == '__main__':
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
     app.config['cluster_reps'] = None
-    app.run(debug=True)
+    app.run(debug=True, host='192.168.1.2')
