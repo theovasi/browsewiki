@@ -129,7 +129,8 @@ def wiki_format(text_file_path,
     joblib.dump(link_dict, output_file_path + '/link_dict.txt')
     joblib.dump(summary_dict, output_file_path + '/summary_dict.txt')
     joblib.dump(filepath_dict, output_file_path + '/filepath_dict.txt')
-    print('{} documents processed , {} added to the collection, {} ignored.'.format(n_docs+n_ignored_docs,
+    print('{} documents processed , {} added to the collection, {} ignored.'.format(
+          n_docs+n_ignored_docs,
           n_docs, n_ignored_docs))
 
 

@@ -33,10 +33,10 @@ def get_cluster_reps(kmodel, dist_space, data_file_path):
         print('No topic model file found.')
         sys.exit(0)
 
-    if os.path.exists('{}/lemma_dict.pd'.format(data_file_path)):
-        lemma_dict = joblib.load('{}/lemma_dict.pd'.format(data_file_path))
+    if os.path.exists('{}/lemmatizer.pkl'.format(data_file_path)):
+        lemmatizer = joblib.load('{}/lemmatizer.pkl'.format(data_file_path))
     else:
-        print('No topic model file found.')
+        print('No lemmatizer file found.')
         sys.exit(0)
 
     for cluster_id, cluster_center in enumerate(kmodel.cluster_centers_):
@@ -51,7 +51,7 @@ def get_cluster_reps(kmodel, dist_space, data_file_path):
             tfidf_vector_dense = tfidf.getrow(doc_id).todense()
             sorted_tfidf_vector = tfidf_vector_dense.argsort().tolist()[0][::-1]
             best_term_ids.append(sorted_tfidf_vector[0])
-        cluster_reps.append([lemma_dict[dictionary[term_id]][0] for term_id in best_term_ids])
+        cluster_reps.append([lemmatizer.get(dictionary[term_id])[0] for term_id in best_term_ids])
 
     return cluster_reps
 

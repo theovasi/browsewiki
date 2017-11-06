@@ -3,7 +3,7 @@ import math
 import argparse
 
 from corpus import Corpus
-from mogreltk import tokenize
+from mogreltk import tokenize, Lemmatizer
 from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 
@@ -102,6 +102,12 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
     dist_space = kmodel.transform(topic_space)
     joblib.dump(kmodel, data_file_path + '/kmodel.txt')
     joblib.dump(dist_space, data_file_path + '/dist_space.txt')
+    
+    if not os.path.exists('{}/lemmatizer.pkl'):
+        lemmatizer = Lemmatizer()
+        lemmatizer.fit(corpus.document_generator(), stopwords_file_path)
+        joblib.dump(lemmatizer, 'lemmatizer.pkl')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process input filepath.')
