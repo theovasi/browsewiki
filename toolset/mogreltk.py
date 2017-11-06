@@ -53,6 +53,7 @@ def tokenize(text, stopwords_file_path=None):
     for token in tokens:
         if not re.search('^\d*$', token)\
            and not (stopwords_file_path is not None and normalize(token) in stopwords)\
-           and not re.search('[.,!;:\"\'-«»]', token):
+           and not re.search('[\.,!;:\"\'-«»\.\.\.%]', token):
             filtered_tokens.append(stem(normalize(token).upper()).lower())
+
     return filtered_tokens
