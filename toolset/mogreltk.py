@@ -59,7 +59,7 @@ def tokenize(text, stopwords_file_path=None):
 
     return filtered_tokens
 
-def stem(text, stopwords_file_path):
+def stem(text, stopwords_file_path=None):
     """ Takes a string as input and returns a list of its stems.
 
         Args:
@@ -71,7 +71,6 @@ def stem(text, stopwords_file_path):
     tokens = tokenize(text, stopwords_file_path)
     stems = [stemmer.stem(normalize(token).upper()).lower() for token in tokens]
     return stems
-
 
 class Lemmatizer(object):
     """ Offers lemmatization functionality by matching tokens to stems(many to one). """
@@ -121,3 +120,39 @@ class Lemmatizer(object):
         assert key in self.lemma_dict
         return self.lemma_dict[key]
 
+    def stem2lemma(self, key):
+        """ Takes a stem as argument and returns a noun that has it as root.
+
+            Args:
+                key (str): The stem that will be converted to a lemma.
+
+            Returns:
+                lemma (str): A noun lemma that has the given stem as root.
+        """
+
+        noun_suffixes = ['ος', 'η', 'o', 'οι', 'ες', 'α']
+        tokens = self.get(key)
+        for suffix in noun_suffixes:
+            for token in tokens:
+                matched_tokens = []
+                if normalize(token).endswith(suffix):
+                    matched_tokens.append(token)
+            if len(matched_tokens) > 0:
+                print(matched_tokens)
+                token_len = [len(token) for token in matched_tokens]
+                return matched_tokens[token_len.index(min(token_len))]
+        return tokens[0]
+
+    def lemmatize(self, word):
+        """ Converts a word to its noun form.
+
+            Args:
+                word (str): The word to be lemmatized.
+
+            Returns:
+                lemma (str): A noun version of the given word.
+        """
+
+        key = stem(word)[0]
+        lemma = self.stem2lemma(key)
+        return lemma

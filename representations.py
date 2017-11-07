@@ -51,7 +51,7 @@ def get_cluster_reps(kmodel, dist_space, data_file_path):
             tfidf_vector_dense = tfidf.getrow(doc_id).todense()
             sorted_tfidf_vector = tfidf_vector_dense.argsort().tolist()[0][::-1]
             best_term_ids.append(sorted_tfidf_vector[0])
-        cluster_reps.append([lemmatizer.get(dictionary[term_id])[0] for term_id in best_term_ids])
+        cluster_reps.append([lemmatizer.stem2lemma(dictionary[term_id]) for term_id in best_term_ids])
 
     return cluster_reps
 

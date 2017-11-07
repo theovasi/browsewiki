@@ -85,7 +85,8 @@ def wiki_format(text_file_path,
                         continue
 
                     # Skip document if its title contains only numbers.
-                    if re.search('^\d*$', title.replace(' ', '')):
+                    if re.search('^\d*$', title.replace(' ', ''))\
+                            or re.search('[\.,!;:\"\'-«»\.\.\.%]', title.replace(' ', '')):
                         n_ignored_docs += 1
                         continue
 
@@ -132,7 +133,6 @@ def wiki_format(text_file_path,
     print('{} documents processed , {} added to the collection, {} ignored.'.format(
           n_docs+n_ignored_docs,
           n_docs, n_ignored_docs))
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

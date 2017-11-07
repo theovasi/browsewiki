@@ -3,7 +3,7 @@ import math
 import argparse
 
 from corpus import Corpus
-from mogreltk import tokenize, Lemmatizer
+from mogreltk import stem, Lemmatizer
 from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 
@@ -27,9 +27,9 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
 
         for i, text in enumerate(collection.document_generator()):
             if stopwords_file_path is not None:
-                batch.append(tokenize(text, stopwords_file_path))
+                batch.append(stem(text, stopwords_file_path))
             else:
-                batch.append(tokenize(text))
+                batch.append(stem(text))
             batch_size += 1
             if batch_size >= max_batch_size:
                 dictionary.add_documents(batch, prune_at=10000)
@@ -45,10 +45,10 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
         if stopwords_file_path is not None:
-            corpus = [dictionary.doc2bow(tokenize(text, stopwords_file_path))
+            corpus = [dictionary.doc2bow(stem(text, stopwords_file_path))
                       for text in collection.document_generator()]
         else:
-            corpus = [dictionary.doc2bow(tokenize(text))
+            corpus = [dictionary.doc2bow(stem(text))
                       for text in collection.document_generator()]
         joblib.dump(corpus, data_file_path + '/corpus.txt')
 
