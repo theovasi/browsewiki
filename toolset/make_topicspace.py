@@ -3,9 +3,9 @@ import math
 import argparse
 
 from corpus import Corpus
-from mogreltk import stem, Lemmatizer
 from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
+import mogreltk
 
 
 def make_topicspace(data_file_path, stopwords_file_path=None,
@@ -27,9 +27,9 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
 
         for i, text in enumerate(collection.document_generator()):
             if stopwords_file_path is not None:
-                batch.append(stem(text, stopwords_file_path))
+                batch.append(mogreltk.stem(text, stopwords_file_path))
             else:
-                batch.append(stem(text))
+                batch.append(mogreltk.stem(text))
             batch_size += 1
             if batch_size >= max_batch_size:
                 dictionary.add_documents(batch, prune_at=10000)
@@ -45,10 +45,10 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
         if stopwords_file_path is not None:
-            corpus = [dictionary.doc2bow(stem(text, stopwords_file_path))
+            corpus = [dictionary.doc2bow(mogreltk.stem(text, stopwords_file_path))
                       for text in collection.document_generator()]
         else:
-            corpus = [dictionary.doc2bow(stem(text))
+            corpus = [dictionary.doc2bow(mogreltk.stem(text))
                       for text in collection.document_generator()]
         joblib.dump(corpus, data_file_path + '/corpus.txt')
 
@@ -65,7 +65,7 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         joblib.dump(tfidf_sparse, data_file_path + '/tfidf_sparse.txt')
 
     # Apply Latent Dirichlet Allocation.
-    if not os.path.exists(data_file_path + '/lda_model.txt'):
+    if not os.path.exists(data_file_path + '/topic_model.txt'):
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
         if not 'corpus' in locals():
@@ -95,19 +95,19 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         joblib.dump(topic_space, data_file_path + '/topic_space.txt')
 
     # Apply clustering using KMeans
-    if not 'topic_space' in locals():
-        topic_space = joblib.load(data_file_path + '/topic_space.txt')
-    kmodel = mbk(n_clusters=n_clusters, n_init=10, reassignment_ratio=0.03, verbose=True)
-    kmodel.fit(topic_space)
-    dist_space = kmodel.transform(topic_space)
-    joblib.dump(kmodel, data_file_path + '/kmodel.txt')
-    joblib.dump(dist_space, data_file_path + '/dist_space.txt')
-    
-    if not os.path.exists('{}/lemmatizer.pkl'):
-        lemmatizer = Lemmatizer()
-        lemmatizer.fit(corpus.document_generator(), stopwords_file_path)
-        joblib.dump(lemmatizer, 'lemmatizer.pkl')
+    if not os.path.exists(data_file_path + '/kmodel.txt'):
+        if not 'topic_space' in locals():
+            topic_space = joblib.load(data_file_path + '/topic_space.txt')
+        kmodel = mbk(n_clusters=n_clusters, n_init=10, reassignment_ratio=0.03, verbose=True)
+        kmodel.fit(topic_space)
+        dist_space = kmodel.transform(topic_space)
+        joblib.dump(kmodel, data_file_path + '/kmodel.txt')
+        joblib.dump(dist_space, data_file_path + '/dist_space.txt')
 
+    if not os.path.exists('{}/lemmatizer.txt'.format(data_file_path)):
+        lemmatizer = mogreltk.Lemmatizer()
+        #  lemmatizer.fit(collection.document_generator(), stopwords_file_path)
+        joblib.dump(lemmatizer, '{}/lemmatizer.txt'.format(data_file_path))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process input filepath.')

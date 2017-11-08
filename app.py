@@ -9,7 +9,7 @@ import numpy as np
 import scipy.sparse as sp
 from scipy.sparse import vstack
 from sklearn.cluster import MiniBatchKMeans as mbk
-from representations import get_cluster_reps
+from toolset import visualize 
 
 store = FilesystemStore('./sessiondata')
 
@@ -30,7 +30,6 @@ def session_init():
     session['links'] = app.config['links']
     session['k'] = app.config['k']
     return redirect(url_for('index'))
-
 
 @app.route('/index', methods=['GET', 'POST'])
 def index():
@@ -101,8 +100,8 @@ def index():
             # Get the representations of the clusters.
             for cluster_id in range(len(kmodel.cluster_centers_)):
                 session['cluster_reps'] =\
-                    get_cluster_reps(session['kmodel'], session['dist_space'],
-                                     app.config['data_file_path'])
+                    visualize.get_cluster_reps(session['kmodel'], session['dist_space'],
+                                     app.config['data_file_path'], 1000)
 
             return render_template('index.html', sgform=sgform,
                                    cluster_reps=session['cluster_reps'],
@@ -141,9 +140,10 @@ def index():
                                    session['cluster_doc_counts'])
 
 
-    session['cluster_reps'] = get_cluster_reps(session['kmodel'],
+    session['cluster_reps'] = visualize.get_cluster_reps(session['kmodel'],
                                                session['dist_space'],
-                                               app.config['data_file_path'])
+                                               app.config['data_file_path'],
+                                               1000)
 
     # Count number of documents in each cluster.
     cluster_doc_counts = [0 for i in range(
@@ -190,4 +190,4 @@ if __name__ == '__main__':
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
     app.config['cluster_reps'] = None
-    app.run(debug=True, host='192.168.1.2')
+    app.run(debug=True)
