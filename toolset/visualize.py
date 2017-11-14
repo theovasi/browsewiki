@@ -2,6 +2,7 @@ import os, sys
 import joblib
 import numpy as np
 from toolset import mogreltk
+from collections import Counter
 
 def get_common_terms(tfidf_vectors, depth=10):
     """ Find common terms between documents by looking at their top X most important ones.
@@ -87,3 +88,52 @@ def get_cluster_reps(kmodel, dist_space, data_file_path, depth):
         cluster_reps.append(common_terms)
 
     return cluster_reps
+
+def get_cluster_category(kmodel, data_file_path, depth):
+    """ Uses the categories assigned by Wikipedia to visualize the clusters.
+
+    Finds the three most common categories in the closest documents to the cluster center.
+
+    Args:
+        kmodel (obj): A scikit-learn K-means model object.
+        data_file_path (str): The path to the data directory.
+        depth (int): The number of documents closest to the cluster center that will be processed.
+    Returns:
+        cluster_reps (list): A list that contains three category representations for each cluster.
+        cluster_reps_percentages (list): A list of the percentages of occurence for the three
+            most common categories in each cluster.
+    
+    """
+    assert os.path.exists('{}/title_category.txt'.format(data_file_path))
+    assert os.path.exists('{}/topic_space.txt'.format(data_file_path))
+    assert os.path.exists('{}/title_dict.txt'.format(data_file_path))
+    # Pandas dataframe that matches titles to categories.
+    title_category_frame = joblib.load('{}/title_category.txt'.format(data_file_path))
+    vector_space = joblib.load('{}/topic_space.txt'.format(data_file_path))
+    title_dict = joblib.load('{}/title_dict.txt'.format(data_file_path))
+    dist_space = kmodel.transform(vector_space)
+
+    cluster_reps = []
+    cluster_reps_percentages = []
+    for cluster_id, cluster_center in enumerate(kmodel.cluster_centers_):
+        # Find the titles of the documents closest to the cluster center.
+        dist_vector = dist_space[:, cluster_id].argsort()
+        nearest_doc_ids = dist_vector[:depth]
+        nearest_titles = [title_dict[doc_id] for doc_id in nearest_doc_ids]  
+        categories = []
+        # Find the categories that occur in the documents.
+        for title in nearest_titles:
+            if title in title_category_frame['Title'].tolist():
+                index = title_category_frame.index[title_category_frame['Title']==title].tolist()[0]
+                categories.extend(title_category_frame.at[index, 'Category'])
+        # Get frequencies of occurence for each category.
+        counter = Counter(categories)
+        cluster_reps_percentages.append([round((category[1]/len(nearest_doc_ids))*100)
+                                 for category in counter.most_common(3)])
+        cluster_reps.append([category[0] for category in counter.most_common(3)])
+    for rep_index, cluster_rep in enumerate(cluster_reps):
+        print('Cluster {}: \n\t{} - {}% \n\t{} - {}%\n\t{} - {}%\n'.format(rep_index,
+              cluster_reps[rep_index][0], cluster_reps_percentages[rep_index][0],
+              cluster_reps[rep_index][1], cluster_reps_percentages[rep_index][1],
+              cluster_reps[rep_index][2], cluster_reps_percentages[rep_index][2]))
+    return [cluster_reps, cluster_reps_percentages]

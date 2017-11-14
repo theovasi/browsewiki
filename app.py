@@ -6,6 +6,7 @@ from simplekv.fs import FilesystemStore
 from forms import ScatterGatherForm
 import joblib, argparse
 import numpy as np
+import pandas as pd
 import scipy.sparse as sp
 from scipy.sparse import vstack
 from sklearn.cluster import MiniBatchKMeans as mbk
@@ -92,16 +93,22 @@ def index():
             # Count number of documents in each cluster.
             cluster_doc_counts = [0 for i in range(
                                   len(session['kmodel'].cluster_centers_))]
+            # Dictionary of the titles of the documents in each cluster.
+            cluster_title_frame = pd.DataFrame({'Titles': session['titles']},
+                                               index=session['kmodel'].labels)
+
             for label in session['kmodel'].labels_:
                 cluster_doc_counts[label] += 1
+                if len(cluster_doc_titles[label] > 0):
+                    cluster_doc_titles[label].a
             session['cluster_doc_counts'] = cluster_doc_counts
 
 
             # Get the representations of the clusters.
             for cluster_id in range(len(kmodel.cluster_centers_)):
-                session['cluster_reps'] =\
-                    visualize.get_cluster_reps(session['kmodel'], session['dist_space'],
-                                     app.config['data_file_path'], 1000)
+                session['cluster_reps'], session['cluster_reps_percentages'] =\
+                    visualize.get_cluster_category(session['kmodel'],
+                                     app.config['data_file_path'], 100)
 
             return render_template('index.html', sgform=sgform,
                                    cluster_reps=session['cluster_reps'],
@@ -132,6 +139,7 @@ def index():
 
             return render_template('index.html', sgform=sgform,
                                    cluster_reps=session['cluster_reps'],
+                                   cluster_reps_percentages=session['cluster_reps_percentages'],
                                    select_list=list(sgform.cluster_select),
                                    titles=nearest_titles,
                                    summaries=nearest_summaries,
@@ -140,10 +148,9 @@ def index():
                                    session['cluster_doc_counts'])
 
 
-    session['cluster_reps'] = visualize.get_cluster_reps(session['kmodel'],
-                                               session['dist_space'],
-                                               app.config['data_file_path'],
-                                               1000)
+    session['cluster_reps'], session['cluster_reps_percentages'] =\
+        visualize.get_cluster_category(session['kmodel'],
+                         app.config['data_file_path'], 100)
 
     # Count number of documents in each cluster.
     cluster_doc_counts = [0 for i in range(
@@ -154,6 +161,7 @@ def index():
 
     return render_template('index.html', sgform=sgform,
                            cluster_reps=session['cluster_reps'],
+                           cluster_reps_percentages=session['cluster_reps_percentages'],
                            select_list=list(sgform.cluster_select),
                            cluster_doc_counts=session['cluster_doc_counts'])
 
@@ -166,8 +174,6 @@ if __name__ == '__main__':
     titles = []
     summaries = []
     links = []
-    lda_model = joblib.load('{}/topic_model.txt'.format(args.data_file_path))
-    dictionary = joblib.load('{}/dictionary.txt'.format(args.data_file_path))
     title_dict = joblib.load('{}/title_dict.txt'.format(args.data_file_path))
     link_dict = joblib.load('{}/link_dict.txt'.format(args.data_file_path))
     summary_dict = joblib.load('{}/summary_dict.txt'.format(args.data_file_path))

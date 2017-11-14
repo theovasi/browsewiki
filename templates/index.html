@@ -43,9 +43,17 @@
                     </div>
                 </div>
                 {% for view_input in sgform.cluster_view %}
-                <div class="col-md-6 list-group-item" style="height: 140px; padding:0;">
-                    <div class="cluster-rep" style="height:100px; padding:0;">
-                        {{ cluster_reps[loop.index0][0] }} / {{ cluster_reps[loop.index0][1] }} / {{ cluster_reps[loop.index0][2] }}
+                <div class="col-md-6 list-group-item" style="height: 200px; padding:0;">
+                    <div class="cluster-rep" style="height:160px;">
+                        <div style="padding:10px;">
+                            {{ cluster_reps[loop.index0][0] }} - {{ cluster_reps_percentages[loop.index0][0] }}% </br>
+                        </div>
+                        <div style="padding:10px;">
+                            {{ cluster_reps[loop.index0][1] }} - {{ cluster_reps_percentages[loop.index0][1] }}% </br>
+                        </div>
+                        <div style="padding:10px;">
+                            {{ cluster_reps[loop.index0][2] }} - {{ cluster_reps_percentages[loop.index0][2] }}% </br>
+                        </div>
                     </div>
                     <div class="col-md-6 bottom-align-text">
                         {{cluster_doc_counts[loop.index0]}} entries
@@ -63,13 +71,12 @@
                     <label class="btn btn-sm btn-success pull-right glyphicon glyphicon-search"></label>
                 </form>
                 {% if titles is defined %}
-                {% for i in range(6) %}
-                <div class="row" style="background-color: #bbb;height: 140px;">
-                    <a href="https://el.wikipedia.org/wiki/{{ links[i] }}" class="list-group-item list-group-item-action flex-column align-items-start" style="height: 140px;">
+                {% for i in range(16) %}
+                <div class="row" style="background-color: #bbb;height: 50px;">
+                    <a href="https://el.wikipedia.org/wiki/{{ links[i] }}" class="list-group-item list-group-item-action flex-column align-items-start" style="height: 50px;">
                     <div class="d-flex w-100 justify-content-between">
                         <h5 class="mb-1">{{ titles[i] }}</h5>
                     </div>
-                    <p>{{ summaries[i] }}</p>
                     </a>
                </div>
                 {% endfor %}
