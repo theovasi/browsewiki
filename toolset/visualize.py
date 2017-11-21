@@ -4,44 +4,38 @@ import numpy as np
 from toolset import mogreltk
 from collections import Counter
 
-def get_common_terms(tfidf_vectors, depth=10):
-    """ Find common terms between documents by looking at their top X most important ones.
+def top_terms(tfidf_vectors, depth=10, top_n=3):
+    """ Find most frequent terms with high Tf-Idf score.
 
-        Based on the depth argument, looks at the top X most important terms based on the
-        Tf-Idf representation of the documents and returns those that all the documents
-        have in common.
+        Look at the most high Tf-Idf scoring terms and return the most frequent
+        across all given vectors.
 
         Args:
             document_vectors (list): A list of document Tf-Idf representations.
-            depth (int): The number of terms with the highest Tf-Idf value that will be considered.
+            depth (int): The number of terms with the highest Tf-Idf value that
+                will be considered from each vector.
+            top_n (int): The number of most common terms to be returned.
 
         Returns:
-            common_terms (list): The list of common important terms.
+            top_terms (list): The list of most common important terms.
     """
-    # Keep only the top X highest scoring terms.
-    sorted_tfidf_vectors = [vector.argsort().tolist()[0][::-1][:depth] for vector in tfidf_vectors]
+    # Keep only the top X highest scoring terms from each vector.
+    terms = []
+    for vector in tfidf_vectors:
+        terms.extend(vector.argsort().tolist()[0][::-1][:depth])
 
-    common_terms = []
-    for term_id in sorted_tfidf_vectors[0]:
-        is_common = True
-        # Check if the term id exists in all the other sorted vectors.
-        for index in range(1, len(sorted_tfidf_vectors)):
-            if term_id not in sorted_tfidf_vectors[index]:
-                is_common = False
-                break
-        # If a common term id add it to the common list.
-        if is_common:
-            common_terms.append(term_id)
+    # Calculate term frequencies.
+    term_frequencies = Counter(terms)
 
-    return common_terms
+    return [term_tuple[0] for term_tuple in term_frequencies.most_common(top_n)]
 
 def get_cluster_reps(kmodel, dist_space, data_file_path, depth):
-    """ Represent the clusters of a K-means clustering model with the most
-        important words of the three documents closest to the cluster center
-        using the Tf-Idf matrix of the collection.
+    """ Represent clusters with their most important words using Tf-Idf.
 
         Args:
             kmodel (obj): An sklearn K-means model.
+            dist_space (obj): Matrix of document distances from cluster centers.
+            data_file_path (str): Path to the application data.
 
         Returns:
             cluster_reps (list(str)): The representations of the clusters.
@@ -83,9 +77,9 @@ def get_cluster_reps(kmodel, dist_space, data_file_path, depth):
         for doc_id in nearest_doc_ids:
             tfidf_vector_dense = tfidf.getrow(doc_id).todense()
             tfidf_vectors.append(tfidf_vector_dense)
-        common_terms = [lemmatizer.stem2lemma(dictionary[term])
-                        for term in get_common_terms(tfidf_vectors, depth)]
-        cluster_reps.append(common_terms)
+        frequent_most_important = [lemmatizer.stem2lemma(dictionary[term_id])
+                        for term_id in top_terms(tfidf_vectors, depth, top_n=3)]
+        cluster_reps.append(frequent_most_important)
 
     return cluster_reps
 
@@ -102,7 +96,7 @@ def get_cluster_category(kmodel, data_file_path, depth):
         cluster_reps (list): A list that contains three category representations for each cluster.
         cluster_reps_percentages (list): A list of the percentages of occurence for the three
             most common categories in each cluster.
-    
+
     """
     assert os.path.exists('{}/title_category.txt'.format(data_file_path))
     assert os.path.exists('{}/topic_space.txt'.format(data_file_path))
@@ -119,7 +113,7 @@ def get_cluster_category(kmodel, data_file_path, depth):
         # Find the titles of the documents closest to the cluster center.
         dist_vector = dist_space[:, cluster_id].argsort()
         nearest_doc_ids = dist_vector[:depth]
-        nearest_titles = [title_dict[doc_id] for doc_id in nearest_doc_ids]  
+        nearest_titles = [title_dict[doc_id] for doc_id in nearest_doc_ids]
         categories = []
         # Find the categories that occur in the documents.
         for title in nearest_titles:

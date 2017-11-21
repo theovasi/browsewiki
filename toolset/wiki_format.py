@@ -85,8 +85,7 @@ def wiki_format(text_file_path,
                         continue
 
                     # Skip document if its title contains only numbers.
-                    if re.search('^\d*$', title.replace(' ', ''))\
-                            or re.search('[\.,!;:\"\'-«»\.\.\.%]', title.replace(' ', '')):
+                    if re.search('^\d*$', title.replace(' ', '')):
                         n_ignored_docs += 1
                         continue
 
