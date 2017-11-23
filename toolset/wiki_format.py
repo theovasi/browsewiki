@@ -79,13 +79,18 @@ def wiki_format(text_file_path,
                             continue
                     doc_text = doc.text.splitlines()
                     title = doc_text[1]
-                    # Skip document if it is in the ignore list.
+                    # Skip article if it is in the ignore list.
                     if ignore_list_path is not None and title in ignore_list:
                         n_ignored_docs += 1
                         continue
 
-                    # Skip document if its title contains only numbers.
+                    # Skip article if its title contains only numbers.
                     if re.search('^\d*$', title.replace(' ', '')):
+                        n_ignored_docs += 1
+                        continue
+
+                    # Skip articles with no text content.
+                    if len(doc.text) < 600:
                         n_ignored_docs += 1
                         continue
 
