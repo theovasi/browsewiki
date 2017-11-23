@@ -32,11 +32,11 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
                 batch.append(mogreltk.stem(text))
             batch_size += 1
             if batch_size >= max_batch_size:
-                dictionary.add_documents(batch, prune_at=5000)
+                dictionary.add_documents(batch, prune_at=2000)
                 batch_size = 0
                 batch = []
-        dictionary.add_documents(batch, prune_at=5000)
-        dictionary.filter_extremes(no_below=50, no_above=0.3)
+        dictionary.add_documents(batch, prune_at=2000)
+        dictionary.filter_extremes(no_below=10, no_above=0.05)
         joblib.dump(dictionary, data_file_path + '/dictionary.txt')
 
     # Second pass of the collection to generate the bag of words representation.

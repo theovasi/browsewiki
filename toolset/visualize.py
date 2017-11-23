@@ -5,37 +5,43 @@ from toolset import mogreltk
 from collections import Counter
 
 def top_terms(tfidf_vectors, depth=10, top_n=3):
-    """ Find most frequent terms with high Tf-Idf score.
-
-        Look at the most high Tf-Idf scoring terms and return the most frequent
-        across all given vectors.
+    """ Find terms with the highest cumulative Tf-Idf score across all vectors.
 
         Args:
             document_vectors (list): A list of document Tf-Idf representations.
             depth (int): The number of terms with the highest Tf-Idf value that
                 will be considered from each vector.
-            top_n (int): The number of most common terms to be returned.
+            top_n (int): The number of highest scoring terms to be returned.
 
         Returns:
-            top_terms (list): The list of most common important terms.
+            top_terms (list): The terms with the highest cumulative Tf-Idf score.
     """
-    # Keep only the top X highest scoring terms from each vector.
-    terms = []
+    # A dictionary that matches term ids to cumulative Tf-Idf score.
+    term_dict = dict();
     for vector in tfidf_vectors:
-        terms.extend(vector.argsort().tolist()[0][::-1][:depth])
+        for term_id in vector.argsort().tolist()[0][::-1][:depth]:
+            if term_id not in term_dict:
+                term_dict[term_id] = vector.tolist()[0][term_id]
+            else:
+                term_dict[term_id] += vector.tolist()[0][term_id]
 
-    # Calculate term frequencies.
-    term_frequencies = Counter(terms)
+    # Find the n terms with the highest cumulative Tf-Idf score.
+    terms = list(term_dict.keys())
+    tfidf_scores = list(term_dict.values())
+    sorted_tfidf_scores = np.argsort(tfidf_scores).tolist()[::-1][:top_n]
+    best_score_terms = [terms[index] for index in sorted_tfidf_scores]
 
-    return [term_tuple[0] for term_tuple in term_frequencies.most_common(top_n)]
+    return best_score_terms
 
-def get_cluster_reps(kmodel, dist_space, data_file_path, depth):
+def get_cluster_reps(tfidf, kmodel, dist_space, data_file_path, depth):
     """ Represent clusters with their most important words using Tf-Idf.
 
         Args:
             kmodel (obj): An sklearn K-means model.
             dist_space (obj): Matrix of document distances from cluster centers.
             data_file_path (str): Path to the application data.
+            depth (int): The number of documents closest to the each cluster
+                center that will be considered.
 
         Returns:
             cluster_reps (list(str)): The representations of the clusters.
@@ -48,18 +54,6 @@ def get_cluster_reps(kmodel, dist_space, data_file_path, depth):
         print('No dictionary file found.')
         sys.exit(0)
 
-    if os.path.exists('{}/tfidf_sparse.txt'.format(data_file_path)):
-        tfidf = joblib.load('{}/tfidf_sparse.txt'.format(data_file_path))
-    else:
-        print('No topic model file found.')
-        sys.exit(0)
-
-    if os.path.exists('{}/topic_model.txt'.format(data_file_path)):
-        topic_model = joblib.load('{}/topic_model.txt'.format(data_file_path))
-    else:
-        print('No topic model file found.')
-        sys.exit(0)
-
     if os.path.exists('{}/lemmatizer.txt'.format(data_file_path)):
         lemmatizer = joblib.load('{}/lemmatizer.txt'.format(data_file_path))
     else:
@@ -67,9 +61,9 @@ def get_cluster_reps(kmodel, dist_space, data_file_path, depth):
         sys.exit(0)
 
     for cluster_id, cluster_center in enumerate(kmodel.cluster_centers_):
-        # Find the three documents nearest to the cluster center.
+        # Find the documents nearest to the cluster center.
         dist_vector = dist_space[:, cluster_id].argsort()
-        nearest_doc_ids = dist_vector[:10]
+        nearest_doc_ids = dist_vector[:depth]
 
         # Find the best term of each ldocument and add it to the cluster
         # representation.
@@ -77,9 +71,9 @@ def get_cluster_reps(kmodel, dist_space, data_file_path, depth):
         for doc_id in nearest_doc_ids:
             tfidf_vector_dense = tfidf.getrow(doc_id).todense()
             tfidf_vectors.append(tfidf_vector_dense)
-        frequent_most_important = [lemmatizer.stem2lemma(dictionary[term_id])
+        most_important_terms = [lemmatizer.stem2lemma(dictionary[term_id])
                         for term_id in top_terms(tfidf_vectors, depth, top_n=3)]
-        cluster_reps.append(frequent_most_important)
+        cluster_reps.append(most_important_terms)
 
     return cluster_reps
 

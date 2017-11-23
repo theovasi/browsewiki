@@ -22,6 +22,7 @@ KVSessionExtension(store, app)
 def session_init():
     session.clear()
     session['uid'] = uuid.uuid4()
+    session['tfidf'] = app.config['tfidf']
     session['vector_space'] = app.config['vector_space']
     session['kmodel'] = app.config['kmodel']
     session['dist_space'] = app.config['dist_space']
@@ -46,7 +47,6 @@ def index():
     # Keep the ids of the documents used in this scatter iteration in a list.
 
     if request.method == 'POST':
-        app.logger.debug(request.form)
         if 'cluster_select' in request.form:
             app.logger.debug('Select')
             selected_clusters = sgform.cluster_select.data
@@ -77,11 +77,17 @@ def index():
             # representations of the new scatter collection documents.
             for doc_id in session['doc_ids']:
                 doc_vector = session['vector_space'].getrow(doc_id)
+                tfidf_vector = session['tfidf'].getrow(doc_id)
                 if 'scatter_vector_space' not in locals():
                     scatter_vector_space = sp.csr.csr_matrix(doc_vector)
+                    scatter_tfidf = sp.csr.csr_matrix(tfidf_vector)
                 else:
                     scatter_vector_space =\
                         vstack([scatter_vector_space, doc_vector], format='csr')
+                    scatter_tfidf =\
+                        vstack([scatter_tfidf, tfidf_vector], format='csr')
+
+            session['tfidf'] = scatter_tfidf
             session['vector_space'] = scatter_vector_space
 
             # Perform the clustering using the new vector space.
@@ -93,9 +99,6 @@ def index():
             # Count number of documents in each cluster.
             cluster_doc_counts = [0 for i in range(
                                   len(session['kmodel'].cluster_centers_))]
-            # Dictionary of the titles of the documents in each cluster.
-            cluster_title_frame = pd.DataFrame({'Titles': session['titles']},
-                                               index=session['kmodel'].labels_)
 
             for label in session['kmodel'].labels_:
                 cluster_doc_counts[label] += 1
@@ -105,7 +108,8 @@ def index():
             # Get the representations of the clusters.
             for cluster_id in range(len(kmodel.cluster_centers_)):
                 session['cluster_reps'] =\
-                    visualize.get_cluster_reps(session['kmodel'],
+                    visualize.get_cluster_reps(session['tfidf'],
+                                               session['kmodel'],
                                                session['dist_space'],
                                                app.config['data_file_path'],100)
 
@@ -147,10 +151,11 @@ def index():
 
 
     session['cluster_reps'] =\
-        visualize.get_cluster_reps(session['kmodel'],
-                                       session['dist_space'],
-                                       app.config['data_file_path'],
-                                       100)
+        visualize.get_cluster_reps(session['tfidf'],
+                                   session['kmodel'],
+                                   session['dist_space'],
+                                   app.config['data_file_path'],
+                                   100)
 
     # Count number of documents in each cluster.
     cluster_doc_counts = [0 for i in range(
@@ -186,6 +191,8 @@ if __name__ == '__main__':
     app.config['titles'] = titles
     app.config['summaries'] = summaries
     app.config['links'] = links
+    app.config['tfidf'] =\
+        joblib.load('{}/tfidf_sparse.txt'.format(args.data_file_path))
     app.config['vector_space'] =\
         joblib.load('{}/topic_space.txt'.format(args.data_file_path))
     app.config['kmodel'] =\
