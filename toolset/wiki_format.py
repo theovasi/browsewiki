@@ -90,9 +90,10 @@ def wiki_format(text_file_path,
                         continue
 
                     # Skip articles with no text content.
-                    if len(doc.text) < 600:
-                        n_ignored_docs += 1
-                        continue
+                   #   if len(doc.text.replace('\n', '')) < 100:
+                        #  n_ignored_docs += 1
+                        #  print(doc.text)
+                        #  continue
 
                     link = title.replace(' ', '_')
                     summary = doc_text[3][:160]
