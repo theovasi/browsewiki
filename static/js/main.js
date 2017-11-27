@@ -12,12 +12,15 @@ $(document).ready(function() {
     $('.view-button').click(function() {
         $('.view-button').removeClass('active');
         $(this).addClass('active');
-        
+
         // Clear all cluster selection checkboxes.
         $('input[name=cluster_select]').removeAttr('checked');
-        
+
     });
     $('.view-button').on('change', function() {
         $('#sg-form').submit();
+    });
+    $('.page-button').on('click', function() {
+        $('#page-form').submit();
     });
 });

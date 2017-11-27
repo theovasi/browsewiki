@@ -31,29 +31,21 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
               </button>
-              <a class="navbar-brand brand" href="#">BrowseWiki</a>
+              <a class="navbar-brand brand" href="#">OWLengine</a>
             </div>
           </div>
         </nav>
         <div class="container" style="padding:0;">
-            <form method="POST" id="sg-form" class="col-md-6 form-group">
+            <form method="POST" id="sg-form" class="col-md-6 form-group" action="{{ url_for('index') }}">
                 <div class="col menubar" style="height: 40px;">
                     <div class="btn-group">
                         <button class="btn btn-sm btn-success"><input type="submit" name="sgform" class="hidden">Browse</button>
                     </div>
                 </div>
                 {% for view_input in sgform.cluster_view %}
-                <div class="col-md-6 list-group-item" style="height: 200px; padding:0;">
-                    <div class="cluster-rep" style="height:160px;">
-                        <div style="padding:10px;">
-                            {{ cluster_reps[loop.index0][0] }} </br>
-                        </div>
-                        <div style="padding:10px;">
-                            {{ cluster_reps[loop.index0][1] }} </br>
-                        </div>
-                        <div style="padding:10px;">
-                            {{ cluster_reps[loop.index0][2] }} </br>
-                        </div>
+                <div class="col-md-6 list-group-item" style="height: 140px; padding:0;">
+                    <div class="cluster-rep" style="height:100px;">
+                        {{ cluster_reps[loop.index0][0] }} - {{ cluster_reps[loop.index0][1] }} - {{ cluster_reps[loop.index0][2] }} </br>
                     </div>
                     <div class="col-md-6 bottom-align-text">
                         {{cluster_doc_counts[loop.index0]}} entries
@@ -67,7 +59,7 @@
             </form>
             <div class="col-md-6">
                 <form method="POST" id="search-form" class="row menubar" style="height: 40px;">
-                    <input class="col-md-11" type="text" placeholder="This search bar does not work."/>
+                    <input class="col-md-11" type="text" placeholder="Search in cluster"/>
                     <label class="btn btn-sm btn-success pull-right glyphicon glyphicon-search"></label>
                 </form>
                 {% if titles is defined %}
@@ -80,6 +72,29 @@
                     </a>
                </div>
                 {% endfor %}
+                <form role="form", id="page-form" method="POST">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        {% if pagination.current_page > 5 %}
+                        <li class="prev-page-button"><a href="{{ url_for_page(0) }}">First</a></li>
+                        {% endif %}
+                        {% if pagination.has_prev() %}
+                        <li class="prev-page-button"><a href="{{ url_for_page(pagination.current_page-1) }}">Previous</a></li>
+                        {% endif %}
+                        {% for i in pagination.iter_pages() %}
+                        {% if i == pagination.current_page %}
+                        <li class="page-button active"><a href="#">{{ i+1 }}</a></li>
+                        {% else %}
+                        <li class="page-button"><a href="{{ url_for_page(i) }}">{{ i+1 }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+                        {% if pagination.has_next() %}
+                        <li class="next-page-button"><a href="{{ url_for_page(pagination.current_page+1) }}">Next</a></li>
+                        {% endif %}
+                        {% if pagination.current_page < pagination.n_pages() - 6 %}
+                        <li class="prev-page-button"><a href="{{ url_for_page(pagination.n_pages()-1) }}">Last</a></li>
+                        {% endif %}
+                    </ul>
+                </form>
                 {% endif %}
           </div>
         </div> <!-- /container -->
@@ -87,7 +102,7 @@
         <hr>
 
         <footer>
-            <p>&copy; Company 2015</p>
+            <p>&copy; Theodoros Vasileiadis 2017</p>
         </footer>
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="static/js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
