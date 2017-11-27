@@ -1,7 +1,10 @@
 """ This module offers a number tools for processing modern Greek text. """
-import re, time, math
+import re
+import time
+import math
 from nltk import sent_tokenize, word_tokenize
 from greek_stemmer import GreekStemmer
+
 
 def normalize(text):
     """ Remove intonation from Greek text.
@@ -28,6 +31,7 @@ def normalize(text):
 
     return text
 
+
 def tokenize(text, stopwords_file_path=None):
     """ Takes a String as input and returns a list of its tokens.
 
@@ -52,12 +56,13 @@ def tokenize(text, stopwords_file_path=None):
     # 4) contain less than 3 letters.
     for token in tokens:
         if not re.search('^\d*$', token)\
-               and not (stopwords_file_path is not None and normalize(token) in stopwords)\
-               and not re.search('[\.,!;:\"\'-«»\.\.\.%]', token)\
-               and len(token) > 2:
+                and not (stopwords_file_path is not None and normalize(token) in stopwords)\
+                and not re.search('[\.,!;:\"\'-«»\.\.\.%]', token)\
+                and len(token) > 2:
             filtered_tokens.append(token)
 
     return filtered_tokens
+
 
 def stem(text, stopwords_file_path=None):
     """ Takes a string as input and returns a list of its stems.
@@ -69,11 +74,14 @@ def stem(text, stopwords_file_path=None):
     """
     stemmer = GreekStemmer()
     tokens = tokenize(text, stopwords_file_path)
-    stems = [stemmer.stem(normalize(token).upper()).lower() for token in tokens]
+    stems = [stemmer.stem(normalize(token).upper()).lower()
+             for token in tokens]
     return stems
+
 
 class Lemmatizer(object):
     """ Offers lemmatization functionality by matching tokens to stems(many to one). """
+
     def __init__(self):
         self.lemma_dict = dict()
 
@@ -95,15 +103,16 @@ class Lemmatizer(object):
         for doc in text_collection_iterable:
             words_tokenized = tokenize(doc, stopwords_file_path)
             words_stemmed = \
-                    [stemmer.stem(normalize(token).upper()).lower() for token in words_tokenized]
+                [stemmer.stem(normalize(token).upper()).lower()
+                 for token in words_tokenized]
             for index, word in enumerate(words_stemmed):
                 self.add(word, words_tokenized[index])
 
             # Print some info.
             n_docs += 1
-            if n_docs%2000 == 0:
+            if n_docs % 2000 == 0:
                 print('Processed {} documents... - {} docs/s'.format(n_docs,
-                      math.floor(n_docs / (time.time() - start_time))))
+                                                                     math.floor(n_docs / (time.time() - start_time))))
 
     def add(self, key, value):
         """ Add a matching of a token to a stem."""
@@ -130,7 +139,7 @@ class Lemmatizer(object):
                 lemma (str): A noun lemma that has the given stem as root.
         """
 
-        noun_suffixes = ['ος', 'η', 'o', 'οι', 'ες', 'α']
+        noun_suffixes = ['ς', 'η', 'o', 'οι', 'α']
         tokens = self.get(key)
         for suffix in noun_suffixes:
             for token in tokens:
@@ -138,7 +147,6 @@ class Lemmatizer(object):
                 if normalize(token).endswith(suffix):
                     matched_tokens.append(token)
             if len(matched_tokens) > 0:
-                print(matched_tokens)
                 token_len = [len(token) for token in matched_tokens]
                 return matched_tokens[token_len.index(min(token_len))]
         return tokens[0]

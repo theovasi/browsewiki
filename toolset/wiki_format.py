@@ -30,7 +30,6 @@ def wiki_format(text_file_path,
                 directory.
 
         """
-
     # If a formatted collection directory already exists, overwrite it.
     if os.path.exists(output_file_path):
         shutil.rmtree(output_file_path)
@@ -47,7 +46,7 @@ def wiki_format(text_file_path,
     start_time = time.time()
 
     for document_folder in os.listdir(text_file_path):
-        os.makedirs(output_file_path + '/formatted/'+ document_folder)
+        os.makedirs(output_file_path + '/formatted/' + document_folder)
         for document_file in os.listdir(text_file_path + '/' +
                                         document_folder):
             # The document's XML like format does not have a root element so it
@@ -65,8 +64,8 @@ def wiki_format(text_file_path,
                         document_content_escaped.append(line)
 
                 document_file_iterator = \
-                        itertools.chain('<root>',
-                                        document_content_escaped, '</root>')
+                    itertools.chain('<root>',
+                                    document_content_escaped, '</root>')
                 # Parse the document file using the iterable.
                 documents = ET.fromstringlist(document_file_iterator)
                 # Each document file contains multiple documents each
@@ -89,12 +88,6 @@ def wiki_format(text_file_path,
                         n_ignored_docs += 1
                         continue
 
-                    # Skip articles with no text content.
-                   #   if len(doc.text.replace('\n', '')) < 100:
-                        #  n_ignored_docs += 1
-                        #  print(doc.text)
-                        #  continue
-
                     link = title.replace(' ', '_')
                     summary = doc_text[3][:160]
                     # Save each document in a separate file.
@@ -116,10 +109,10 @@ def wiki_format(text_file_path,
                     n_docs += 1
                     if sub_size is not None:
                         print('Picked {}/{} documents at random, {} docs/s'.format(n_docs, sub_size,
-                              math.floor(n_docs / (time.time() - start_time))))
-                    elif n_docs%10000 == 0:
+                                                                                   math.floor(n_docs / (time.time() - start_time))))
+                    elif n_docs % 10000 == 0:
                         print('Added {} documents to the collection, {} docs/s'.format(n_docs,
-                              math.floor(n_docs / (time.time() - start_time))))
+                                                                                       math.floor(n_docs / (time.time() - start_time))))
 
                     if sub_size != None and n_docs >= sub_size:
                         joblib.dump(title_dict,
@@ -136,8 +129,9 @@ def wiki_format(text_file_path,
     joblib.dump(summary_dict, output_file_path + '/summary_dict.txt')
     joblib.dump(filepath_dict, output_file_path + '/filepath_dict.txt')
     print('{} documents processed , {} added to the collection, {} ignored.'.format(
-          n_docs+n_ignored_docs,
+          n_docs + n_ignored_docs,
           n_docs, n_ignored_docs))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
