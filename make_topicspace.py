@@ -12,13 +12,12 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
                     n_topics=300, method='lda', n_clusters=8):
     # Allow gensim to print additional info while executing.
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-    if not os.path.exists(data_file_path+'/formatted'):
-        print('No corpus file found.')
     collection = Corpus(filepath_dict_path=data_file_path+'/filepath_dict.txt')
+    print('-- Loaded corpus')
 
     # First pass of the collection to create the dictionary.
     if not os.path.exists(data_file_path + '/dictionary.txt'):
-        print('Generating dictionary...')
+        print('-- Generating dictionary')
         dictionary = corpora.Dictionary()
         batch_size = 0
         max_batch_size = 2000
@@ -40,9 +39,10 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
 
     # Second pass of the collection to generate the bag of words representation.
     if not os.path.exists(data_file_path + '/corpus.txt'):
-        print('Generating corpus...')
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
+            print('-- Loaded dictionary')
+        print('-- Generating corpus')
         if stopwords_file_path is not None:
             corpus = [dictionary.doc2bow(mogreltk.stem(text, stopwords_file_path))
                       for text in collection.document_generator()]
@@ -53,9 +53,10 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
 
     # Transform from BoW representation to tf-idf.
     if not os.path.exists(data_file_path + '/tfidf_model.txt'):
-        print('Generating tf-idf matrix...')
         if not 'corpus' in locals():
             corpus = joblib.load(data_file_path + '/corpus.txt')
+            print('-- Loaded corpus')
+        print('-- Generating tf-idf matrix')
         tfidf = models.TfidfModel(corpus)
         joblib.dump(tfidf, data_file_path + '/tfidf_model.txt')
         corpus_tfidf = tfidf[corpus]
@@ -67,19 +68,22 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
     if not os.path.exists(data_file_path + '/topic_model.txt'):
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
+            print('-- Loaded dictionary')
         if not 'corpus' in locals():
             corpus = joblib.load(data_file_path + '/corpus.txt')
+            print('-- Loaded corpus')
         if not 'tfidf' in locals():
             tfidf = joblib.load(data_file_path + '/tfidf_model.txt')
+            print('-- Loaded tfidf model')
             corpus_tfidf = tfidf[corpus]
         if method == 'lsa':
-            print('Applying Latent Semantic Analysis for {} topics.'.format(n_topics))
+            print('-- Applying Latent Semantic Analysis for {} topics'.format(n_topics))
             lsa = models.lsimodel.LsiModel(corpus=corpus_tfidf, id2word=dictionary,
                                            num_topics=n_topics)
             joblib.dump(lsa, data_file_path + '/topic_model.txt')
             transformed_corpus = lsa[corpus]
         else:
-            print('Applying Latent Dirichlet Allocation for {} topics.'.format(n_topics))
+            print('-- Applying Latent Dirichlet Allocation for {} topics'.format(n_topics))
             lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, id2word=dictionary,
                                            num_topics=n_topics, passes=2)
             joblib.dump(lda, data_file_path + '/topic_model.txt')
@@ -97,6 +101,7 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
     if not os.path.exists(data_file_path + '/kmodel.txt'):
         if not 'topic_space' in locals():
             topic_space = joblib.load(data_file_path + '/topic_space.txt')
+            print('-- Loaded topic space matrix')
         kmodel = mbk(n_clusters=n_clusters, n_init=10, reassignment_ratio=0.03, verbose=True)
         kmodel.fit(topic_space)
         dist_space = kmodel.transform(topic_space)
@@ -105,7 +110,7 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
 
     if not os.path.exists('{}/lemmatizer.txt'.format(data_file_path)):
         lemmatizer = mogreltk.Lemmatizer()
-        lemmatizer.fit(collection.document_generator(), stopwords_file_path)
+        lemmatizer.fit(collection.document_generator(), stopwords_file_path, True)
         joblib.dump(lemmatizer, '{}/lemmatizer.txt'.format(data_file_path))
 
 if __name__ == '__main__':
