@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import unittest
 from unittest import mock
 from toolset.corpus import Corpus
@@ -22,7 +23,6 @@ class CorpusTest(unittest.TestCase):
 
         self.corpus = Corpus('filepath_dict')
 
-
     def test_corpus_document_generator(self):
         for doc in self.corpus.document_generator():
             self.assertTrue(doc == 'This is a test string.'
@@ -34,7 +34,12 @@ class CorpusTest(unittest.TestCase):
         self.assertEqual(stat_log['max_doc_size'], 7) # Dot is counterd a word.
         self.assertEqual(stat_log['min_doc_size'], 6)
         self.assertEqual(stat_log['avg_doc_size'], 6.2)
-        
+
+    def tearDown(self):
+        for i in range(4):
+            os.remove('file{}'.format(i))
+        os.remove('filepath_dict')
+            
 
 if __name__ == '__main__':
     unittest.main()
