@@ -48,7 +48,7 @@ def tokenize(text, stopwords_file_path=None):
         stopwords = [normalize(stopword) for stopword in stopwords]
 
     tokens = [
-        word.lower()
+        normalize(word.lower())
         for sent in sent_tokenize(text)
         for word in word_tokenize(sent)
     ]
@@ -117,11 +117,9 @@ class Lemmatizer(object):
     def add(self, key, value):
         """ Add a matching of a token to a stem."""
         if not key in self.lemma_dict:
-            # If the stem does not exist add and entry for it to the dicitonary.
-            self.lemma_dict[key] = [value]
+            self.lemma_dict[normalize(key)] = [normalize(value)]
         elif not value in self.lemma_dict[key]:
-            # If the stem exists append to the list of matched tokens.
-            self.lemma_dict[key].append(value)
+            self.lemma_dict[normalize(key)].append(normalize(value))
 
     def get(self, key):
         """ Returns the list of tokens matched to a stem. """
@@ -141,6 +139,7 @@ class Lemmatizer(object):
 
         noun_suffixes = ['ς', 'η', 'o', 'οι', 'α']
         tokens = self.get(key)
+        counter = Count(tokens)
         for suffix in noun_suffixes:
             for token in tokens:
                 matched_tokens = []
