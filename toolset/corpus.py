@@ -2,6 +2,7 @@
 """ Provides processing utilities for collections of text documents."""
 import os
 import time
+import math
 import joblib
 from nltk import sent_tokenize, word_tokenize
 
@@ -51,7 +52,7 @@ class Corpus:
 
         """
         start_time = time.time()
-        n_docs, total_doc_size, max_doc_size, min_doc_size = 0, 0, 0, 0
+        n_docs, total_doc_size, max_doc_size, min_doc_size = 0, 0, 0, math.inf
 
         for doc in self.document_generator():
             n_docs += 1
@@ -72,7 +73,7 @@ class Corpus:
         stat_log['n_docs'] = n_docs
         stat_log['max_doc_size'] = max_doc_size
         stat_log['min_doc_size'] = min_doc_size
-        stat_log['avg_doc_size'] = round(total_doc_size / n_docs)
+        stat_log['avg_doc_size'] = round(total_doc_size / n_docs, 1)
 
         if verbose:
             print()
@@ -82,6 +83,6 @@ class Corpus:
             print('Document size metrics: ')
             print('\tMax: ' + str(max_doc_size))
             print('\tMin: ' + str(min_doc_size))
-            print('\tAverage: ' + str(round(total_doc_size / n_docs)))
+            print('\tAverage: ' + str(round(total_doc_size / n_docs, 1)))
 
         return stat_log
