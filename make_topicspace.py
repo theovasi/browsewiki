@@ -14,8 +14,7 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
     logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
     if not os.path.exists(data_file_path+'/formatted'):
         print('No corpus file found.')
-    collection = Corpus(data_file_path+'/formatted',
-                        filepath_dict_path=data_file_path+'/filepath_dict.txt')
+    collection = Corpus(filepath_dict_path=data_file_path+'/filepath_dict.txt')
 
     # First pass of the collection to create the dictionary.
     if not os.path.exists(data_file_path + '/dictionary.txt'):
