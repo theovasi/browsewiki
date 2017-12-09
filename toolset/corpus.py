@@ -1,3 +1,4 @@
+# !/usr/bin/python
 # -*- coding: utf-8 -*-
 """ Provides processing utilities for collections of text documents."""
 import os
