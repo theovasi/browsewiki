@@ -153,19 +153,20 @@ def index(current_page=0):
     if request.method == 'POST':
         if 'query' in request.form:
             query = request.form['query']
-            app.logger.debug(request.form['query'])
+            app.logger.debug('Query received: ' + str(request.form['query']))
             n_docs, nearest_titles, nearest_summaries, nearest_links =\
-                k_nearest_docs_for_page(query,
-                                        session['pagination'].cluster_view_id, current_page)
-            session['pagination'] = Pagination('search',
-                                               session['pagination'].cluster_view_id,
-                                               current_page, 16, n_docs, query=query)
+                k_nearest_docs_for_page(
+                    query, session['pagination'].cluster_view_id, current_page)
+            session['pagination'] =\
+                Pagination('search', session['pagination'].cluster_view_id,
+                           current_page, 16, n_docs, query=query)
             sgform = ScatterGatherForm()
             sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
                                              for i in range(n_clusters)]
             sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
                                            for i in range(n_clusters)]
-            return render_template('index.html', sgform=sgform, search_form=search_form,
+            return render_template('index.html', sgform=sgform,
+                                   search_form=search_form,
                                    cluster_reps=session['cluster_reps'],
                                    select_list=list(sgform.cluster_select),
                                    n_docs=n_docs,
@@ -173,12 +174,12 @@ def index(current_page=0):
                                    titles=nearest_titles,
                                    summaries=nearest_summaries,
                                    links=nearest_links,
-                                   cluster_doc_counts=session['cluster_doc_counts'])
+                                   cluster_doc_counts=session[
+                                       'cluster_doc_counts'])
 
         elif 'cluster_select' in request.form:
-            app.logger.debug('Select')
             selected_clusters = sgform.cluster_select.data
-            app.logger.debug(selected_clusters)
+            app.logger.debug('Selected: ' + str(selected_clusters))
             # Get assignments of documents to clusters in a vector of cluster
             # ids where the document ids are the indices.
             labels = session['kmodel'].labels_
@@ -196,17 +197,18 @@ def index(current_page=0):
                     summaries.append(session['summaries'][i])
                     links.append(session['links'][i])
             if len(doc_ids) < (session['k'] * 16):
-                app.logger.debug('Reached the end.')
 
                 sgform = ScatterGatherForm()
                 sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
                                                  for i in range(session['k'])]
                 sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
                                                for i in range(session['k'])]
-                return render_template('index.html', sgform=sgform, search_form=search_form,
+                return render_template('index.html', sgform=sgform,
+                                       search_form=search_form,
                                        cluster_reps=session['cluster_reps'],
                                        select_list=list(sgform.cluster_select),
-                                       cluster_doc_counts=session['cluster_doc_counts'])
+                                       cluster_doc_counts=session[
+                                           'cluster_doc_counts'])
 
             # This is the new scatter document collection.
             session['doc_ids'] = doc_ids
@@ -218,7 +220,6 @@ def index(current_page=0):
             # Create a new topic space matrix by selecting only the vector
             # representations of the new scatter collection documents.
             for doc_id in session['doc_ids']:
-                app.logger.debug(doc_id)
                 doc_vector = session['vector_space'].getrow(doc_id)
                 tfidf_vector = session['tfidf'].getrow(doc_id)
                 if 'scatter_vector_space' not in locals():
@@ -226,7 +227,8 @@ def index(current_page=0):
                     scatter_tfidf = sp.csr.csr_matrix(tfidf_vector)
                 else:
                     scatter_vector_space =\
-                        vstack([scatter_vector_space, doc_vector], format='csr')
+                        vstack([scatter_vector_space, doc_vector],
+                               format='csr')
                     scatter_tfidf =\
                         vstack([scatter_tfidf, tfidf_vector], format='csr')
 
@@ -239,8 +241,9 @@ def index(current_page=0):
             total_corpus_size = len(app.config['doc_ids'])
             gathered_corpus_size = len(session['doc_ids'])
             coeff = 3
-            session['k'] = round(floor((total_corpus_size +
-                                        gathered_corpus_size) / (coeff * pow(10, 4))))
+            session['k'] = round(
+                floor((total_corpus_size +
+                       gathered_corpus_size) / (coeff * pow(10, 4))))
             kmodel = mbk(n_clusters=session['k'], max_iter=10)
             kmodel.fit(scatter_vector_space)
             session['kmodel'] = kmodel
@@ -268,24 +271,28 @@ def index(current_page=0):
             sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
                                            for i in range(session['k'])]
 
-            return render_template('index.html', sgform=sgform, search_form=search_form,
+            return render_template('index.html', sgform=sgform,
+                                   search_form=search_form,
                                    cluster_reps=session['cluster_reps'],
                                    select_list=list(sgform.cluster_select),
-                                   cluster_doc_counts=session['cluster_doc_counts'])
+                                   cluster_doc_counts=session[
+                                       'cluster_doc_counts'])
 
         elif 'cluster_view' in request.form:
             cluster_view_id = sgform.cluster_view.data[0]
             app.logger.debug(cluster_view_id)
-            n_docs, nearest_titles, nearest_summaries, nearest_links = docs_for_page(
-                cluster_view_id, current_page)
+            n_docs, nearest_titles, nearest_summaries, nearest_links =\
+                docs_for_page(cluster_view_id, current_page)
             session['pagination'] = Pagination('view',
-                                               cluster_view_id, current_page, 16, n_docs)
+                                               cluster_view_id, current_page,
+                                               16, n_docs)
             sgform = ScatterGatherForm()
             sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
                                              for i in range(session['k'])]
             sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
                                            for i in range(session['k'])]
-            return render_template('index.html', sgform=sgform, search_form=search_form,
+            return render_template('index.html', sgform=sgform,
+                                   search_form=search_form,
                                    cluster_reps=session['cluster_reps'],
                                    select_list=list(sgform.cluster_select),
                                    n_docs=n_docs,
@@ -293,13 +300,15 @@ def index(current_page=0):
                                    titles=nearest_titles,
                                    summaries=nearest_summaries,
                                    links=nearest_links,
-                                   cluster_doc_counts=session['cluster_doc_counts'])
+                                   cluster_doc_counts=session[
+                                       'cluster_doc_counts'])
 
-    session['cluster_reps'] = visualize.get_cluster_reps(session['tfidf'],
-                                                         session['kmodel'],
-                                                         session['dist_space'],
-                                                         app.config['data_file_path'],
-                                                         50)
+    session['cluster_reps'] =\
+        visualize.get_cluster_reps(session['tfidf'],
+                                   session['kmodel'],
+                                   session['dist_space'],
+                                   app.config['data_file_path'],
+                                   50)
 
     # Count number of documents in each cluster.
     cluster_doc_counts = [0 for i in range(
@@ -308,7 +317,8 @@ def index(current_page=0):
         cluster_doc_counts[label] += 1
     session['cluster_doc_counts'] = cluster_doc_counts
 
-    return render_template('index.html', sgform=sgform, search_form=search_form,
+    return render_template('index.html', sgform=sgform,
+                           search_form=search_form,
                            cluster_reps=session['cluster_reps'],
                            select_list=list(sgform.cluster_select),
                            cluster_doc_counts=session['cluster_doc_counts'])
@@ -327,13 +337,17 @@ def view_page(current_page):
 
     app.logger.debug(session['pagination'].source)
     if session['pagination'].source == 'search':
-        n_docs, nearest_titles, nearest_summaries, nearest_links = k_nearest_docs_for_page(session['pagination'].query,
-                                                                                           session['pagination'].cluster_view_id, current_page)
+        n_docs, nearest_titles, nearest_summaries, nearest_links =\
+            k_nearest_docs_for_page(session['pagination'].query,
+                                    session['pagination'].cluster_view_id,
+                                    current_page)
     else:
-        n_docs, nearest_titles, nearest_summaries, nearest_links = docs_for_page(
-            session['pagination'].cluster_view_id, current_page)
+        n_docs, nearest_titles, nearest_summaries, nearest_links =\
+            docs_for_page(
+                session['pagination'].cluster_view_id, current_page)
     session['pagination'].current_page = current_page
-    return render_template('index.html', sgform=sgform, search_form=search_form,
+    return render_template('index.html', sgform=sgform,
+                           search_form=search_form,
                            cluster_reps=session['cluster_reps'],
                            select_list=list(sgform.cluster_select),
                            n_docs=session['pagination'].n_items,
@@ -350,44 +364,41 @@ def send_html(path):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser('Process command line arguments.')
-    parser.add_argument('data_file_path', type=str,
-                        help='Path to the data file.')
-    args = parser.parse_args()
+    data_file_path = './appdata'
     doc_ids = []
     titles = []
     summaries = []
     links = []
-    title_dict = joblib.load('{}/title_dict.txt'.format(args.data_file_path))
-    link_dict = joblib.load('{}/link_dict.txt'.format(args.data_file_path))
+    title_dict = joblib.load('{}/title_dict.txt'.format(data_file_path))
+    link_dict = joblib.load('{}/link_dict.txt'.format(data_file_path))
     summary_dict = joblib.load(
-        '{}/summary_dict.txt'.format(args.data_file_path))
+        '{}/summary_dict.txt'.format(data_file_path))
     for i in range(len(title_dict)):
         doc_ids.append(i)
         titles.append(title_dict[i])
         summaries.append(summary_dict[i])
         links.append(link_dict[i])
-    app.config['data_file_path'] = args.data_file_path
+    app.config['data_file_path'] = data_file_path
     app.config['doc_ids'] = doc_ids
     app.config['titles'] = titles
     app.config['summaries'] = summaries
     app.config['links'] = links
     app.config['tfidf_model'] = joblib.load(
-        '{}/tfidf_model.txt'.format(args.data_file_path))
+        '{}/tfidf_model.txt'.format(data_file_path))
     app.config['tfidf'] = joblib.load(
-        '{}/tfidf_sparse.txt'.format(args.data_file_path))
+        '{}/tfidf_sparse.txt'.format(data_file_path))
     # Train nearest neighbors model.
     app.config['nn_model'] = nn(n_neighbors=1000, radius=10)
     app.config['nn_model'].fit(app.config['tfidf'])
 
     app.config['dictionary'] = joblib.load(
-        '{}/dictionary.txt'.format(args.data_file_path))
+        '{}/dictionary.txt'.format(data_file_path))
     app.config['vector_space'] = joblib.load(
-        '{}/topic_space.txt'.format(args.data_file_path))
+        '{}/topic_space.txt'.format(data_file_path))
     app.config['kmodel'] = joblib.load(
-        '{}/kmodel.txt'.format(args.data_file_path))
+        '{}/kmodel.txt'.format(data_file_path))
     app.config['dist_space'] = joblib.load(
-        '{}/dist_space.txt'.format(args.data_file_path))
+        '{}/dist_space.txt'.format(data_file_path))
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
     app.config['cluster_reps'] = None

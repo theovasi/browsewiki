@@ -35,7 +35,7 @@ def normalize(text):
     return text
 
 
-def tokenize(text, stopwords_file_path=None):
+def tokenize(text, stopwords=None):
     """ Takes a String as input and returns a list of its tokens.
 
         Args:
@@ -45,9 +45,7 @@ def tokenize(text, stopwords_file_path=None):
             stopwords, punctuation and numbers.
     """
     filtered_tokens = []
-    if stopwords_file_path is not None:
-        with open(stopwords_file_path) as file_data:
-            stopwords = file_data.read().splitlines()
+    if stopwords is not None:
         stopwords = [normalize(stopword) for stopword in stopwords]
 
     tokens = [
@@ -59,7 +57,7 @@ def tokenize(text, stopwords_file_path=None):
     # 3) are punctuation 4) contain less than 3 letters.
     for token in tokens:
         if not re.search(r'^\d*$', token)\
-                and not (stopwords_file_path is not None
+                and not (stopwords is not None
                          and normalize(token) in stopwords)\
                 and not re.search(r'[\.,!;:\"\'-«»\.\.\.%]', token)\
                 and len(token) > 2:
@@ -68,7 +66,7 @@ def tokenize(text, stopwords_file_path=None):
     return filtered_tokens
 
 
-def stem(text, stopwords_file_path=None):
+def stem(text, stopwords=None):
     """ Takes a string as input and returns a list of its stems.
 
         Args:
@@ -77,7 +75,7 @@ def stem(text, stopwords_file_path=None):
             stems (list): The original text as a list of stems.
     """
     stemmer = GreekStemmer()
-    tokens = tokenize(text, stopwords_file_path)
+    tokens = tokenize(text, stopwords)
     stems = [stemmer.stem(token.upper()).lower()
              for token in tokens]
     return stems

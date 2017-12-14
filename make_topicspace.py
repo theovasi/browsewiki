@@ -1,4 +1,8 @@
-import os, sys, logging, scipy, joblib
+import os
+import sys
+import logging
+import scipy
+import joblib
 import math
 import argparse
 
@@ -11,8 +15,10 @@ from toolset import mogreltk
 def make_topicspace(data_file_path, stopwords_file_path=None,
                     n_topics=300, method='lda', n_clusters=8):
     # Allow gensim to print additional info while executing.
-    logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-    collection = Corpus(filepath_dict_path=data_file_path+'/filepath_dict.txt')
+    logging.basicConfig(
+        format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+    collection = Corpus(
+        filepath_dict_path=data_file_path + '/filepath_dict.txt')
     print('-- Loaded corpus')
 
     # First pass of the collection to create the dictionary.
@@ -25,7 +31,8 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
 
         for i, text in enumerate(collection.document_generator()):
             if stopwords_file_path is not None:
-                batch.append(mogreltk.stem(text, stopwords_file_path))
+                stopwords = joblib.load(stopwords_file_path)
+                batch.append(mogreltk.stem(text, stopwords))
             else:
                 batch.append(mogreltk.stem(text))
             batch_size += 1
@@ -39,12 +46,13 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
 
     # Second pass of the collection to generate the bag of words representation.
     if not os.path.exists(data_file_path + '/corpus.txt'):
-        if not 'dictionary' in locals():
+        if 'dictionary' not in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
             print('-- Loaded dictionary')
         print('-- Generating corpus')
         if stopwords_file_path is not None:
-            corpus = [dictionary.doc2bow(mogreltk.stem(text, stopwords_file_path))
+            stopwords = joblib.load(stopwords_file_path)
+            corpus = [dictionary.doc2bow(mogreltk.stem(text, stopwords))
                       for text in collection.document_generator()]
         else:
             corpus = [dictionary.doc2bow(mogreltk.stem(text))
@@ -83,7 +91,8 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
             joblib.dump(lsa, data_file_path + '/topic_model.txt')
             transformed_corpus = lsa[corpus]
         else:
-            print('-- Applying Latent Dirichlet Allocation for {} topics'.format(n_topics))
+            print(
+                '-- Applying Latent Dirichlet Allocation for {} topics'.format(n_topics))
             lda = models.ldamodel.LdaModel(corpus=corpus_tfidf, id2word=dictionary,
                                            num_topics=n_topics, passes=2)
             joblib.dump(lda, data_file_path + '/topic_model.txt')
@@ -102,7 +111,8 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         if not 'topic_space' in locals():
             topic_space = joblib.load(data_file_path + '/topic_space.txt')
             print('-- Loaded topic space matrix')
-        kmodel = mbk(n_clusters=n_clusters, n_init=10, reassignment_ratio=0.03, verbose=True)
+        kmodel = mbk(n_clusters=n_clusters, n_init=10,
+                     reassignment_ratio=0.03, verbose=True)
         kmodel.fit(topic_space)
         dist_space = kmodel.transform(topic_space)
         joblib.dump(kmodel, data_file_path + '/kmodel.txt')
@@ -110,8 +120,10 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
 
     if not os.path.exists('{}/lemmatizer.txt'.format(data_file_path)):
         lemmatizer = mogreltk.Lemmatizer()
-        lemmatizer.fit(collection.document_generator(), stopwords_file_path, True)
+        lemmatizer.fit(collection.document_generator(),
+                       stopwords_file_path, True)
         joblib.dump(lemmatizer, '{}/lemmatizer.txt'.format(data_file_path))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process input filepath.')
@@ -123,7 +135,7 @@ if __name__ == '__main__':
                         help='The number of topics that will be extracted.')
     parser.add_argument('-m', '--method', type=str,
                         help='The topic modeling method to be used.')
-    parser.add_argument('-k', '--n_clusters', type=int ,
+    parser.add_argument('-k', '--n_clusters', type=int,
                         help='The number of clusters to be created.')
     args = parser.parse_args()
     make_topicspace(data_file_path=args.data_file_path, stopwords_file_path=args.stop,
