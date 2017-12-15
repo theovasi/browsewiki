@@ -94,21 +94,16 @@ def get_cluster_reps(tfidf, kmodel, dist_space, data_file_path, depth):
         filtered_cluster_reps = []
         removed_terms = []
         for index, rep in enumerate(cluster_reps):
-            print('Cluster: {}, Rep size: {}'.format(index, len(rep)))
             filtered_rep = []
             for term in rep:
-                print('Term: {}, Frequency: {}'.format(
-                    term, rep_term_frequencies[term]))
                 if (len(rep) - len(filtered_rep)) <= 3 or\
                         rep_term_frequencies[term] <= 1:
                     filtered_rep.append(term)
                 else:
                     changed = True
                     removed_terms.append(term)
-                    print('Removed\n')
             filtered_cluster_reps.append(filtered_rep)
 
-        print(removed_terms)
         cluster_reps = [rep[:3] for rep in filtered_cluster_reps]
 
     return cluster_reps

@@ -15,6 +15,8 @@ from scipy.sparse import csc_matrix
 from gensim import matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 from sklearn.neighbors import NearestNeighbors as nn
+from collections import Counter
+from operator import itemgetter
 from toolset import visualize
 from toolset.mogreltk import stem
 
@@ -115,6 +117,39 @@ def k_nearest_docs_for_page(query, cluster_view_id, page):
     return len(filtered_nearest_doc_ids), nearest_titles, nearest_summaries, nearest_links
 
 
+def gather(session, selected_clusters):
+    """ Update corpus data keeping only documents from selected clusters."""
+    doc_ids = []
+    titles = []
+    summaries = []
+    links = []
+    doc_vector_list = []
+    tfidf_vector_list = []
+    for i, label in enumerate(session['kmodel'].labels_):
+        if str(label) in selected_clusters:
+            doc_ids.append(i)
+            titles.append(session['titles'][i])
+            summaries.append(session['summaries'][i])
+            links.append(session['links'][i])
+
+            # Create a new topic space matrix by selecting only the vector
+            # representations of the new scatter collection documents.
+            doc_vector_list.append(session['vector_space'].getrow(i))
+            tfidf_vector_list.append(session['tfidf'].getrow(i))
+
+    vector_space = vstack(doc_vector_list, format='csr')
+    tfidf = vstack(tfidf_vector_list, format='csr')
+
+    return doc_ids, titles, summaries, links, vector_space, tfidf
+
+
+def kmeans_rule(total_corpus_size, gathered_corpus_size):
+    coeff = 3
+    return round(
+        floor((total_corpus_size +
+               gathered_corpus_size) / (coeff * pow(10, 4))))
+
+
 @app.route('/')
 def session_init():
     session.clear()
@@ -136,19 +171,16 @@ def session_init():
 
 @app.route('/index', methods=['GET', 'POST'])
 def index(current_page=0):
-    app.logger.debug(session['uid'])
-    app.logger.debug(current_page)
     sgform = ScatterGatherForm()
     search_form = SearchForm()
 
     # Initialize cluster select/view form dynamically depending on the number
     # of clusters.
-    n_clusters = len(app.config['kmodel'].cluster_centers_)
     sgform = ScatterGatherForm()
     sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
-                                     for i in range(n_clusters)]
+                                     for i in range(session['k'])]
     sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
-                                   for i in range(n_clusters)]
+                                   for i in range(session['k'])]
 
     if request.method == 'POST':
         if 'query' in request.form:
@@ -162,9 +194,9 @@ def index(current_page=0):
                            current_page, 16, n_docs, query=query)
             sgform = ScatterGatherForm()
             sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
-                                             for i in range(n_clusters)]
+                                             for i in range(session['k'])]
             sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
-                                           for i in range(n_clusters)]
+                                           for i in range(session['k'])]
             return render_template('index.html', sgform=sgform,
                                    search_form=search_form,
                                    cluster_reps=session['cluster_reps'],
@@ -180,91 +212,33 @@ def index(current_page=0):
         elif 'cluster_select' in request.form:
             selected_clusters = sgform.cluster_select.data
             app.logger.debug('Selected: ' + str(selected_clusters))
-            # Get assignments of documents to clusters in a vector of cluster
-            # ids where the document ids are the indices.
-            labels = session['kmodel'].labels_
 
-            # Gather the documents that are assigned to the selected clusters.
-            doc_ids = []
-            titles = []
-            summaries = []
-            links = []
-            app.logger.debug('Gathering document representations...')
-            for i, label in enumerate(labels):
-                if str(label) in selected_clusters:
-                    doc_ids.append(i)
-                    titles.append(session['titles'][i])
-                    summaries.append(session['summaries'][i])
-                    links.append(session['links'][i])
-            if len(doc_ids) < (session['k'] * 16):
+            session['doc_ids'], session['titles'], session['summaries'],\
+                session['links'], session['vector_space'], session['tfidf'] =\
+                gather(session, selected_clusters)
 
-                sgform = ScatterGatherForm()
-                sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
-                                                 for i in range(session['k'])]
-                sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
-                                               for i in range(session['k'])]
-                return render_template('index.html', sgform=sgform,
-                                       search_form=search_form,
-                                       cluster_reps=session['cluster_reps'],
-                                       select_list=list(sgform.cluster_select),
-                                       cluster_doc_counts=session[
-                                           'cluster_doc_counts'])
-
-            # This is the new scatter document collection.
-            session['doc_ids'] = doc_ids
-            session['titles'] = titles
-            session['summaries'] = summaries
-            session['links'] = links
-
-            app.logger.debug('Constructing new vector space...')
-            # Create a new topic space matrix by selecting only the vector
-            # representations of the new scatter collection documents.
-            for doc_id in session['doc_ids']:
-                doc_vector = session['vector_space'].getrow(doc_id)
-                tfidf_vector = session['tfidf'].getrow(doc_id)
-                if 'scatter_vector_space' not in locals():
-                    scatter_vector_space = sp.csr.csr_matrix(doc_vector)
-                    scatter_tfidf = sp.csr.csr_matrix(tfidf_vector)
-                else:
-                    scatter_vector_space =\
-                        vstack([scatter_vector_space, doc_vector],
-                               format='csr')
-                    scatter_tfidf =\
-                        vstack([scatter_tfidf, tfidf_vector], format='csr')
-
-            session['tfidf'] = scatter_tfidf
-            session['nn_model'].fit(scatter_tfidf)
-            session['vector_space'] = scatter_vector_space
-
-            app.logger.debug('Clustering...')
             # Perform the clustering using the new vector space.
-            total_corpus_size = len(app.config['doc_ids'])
-            gathered_corpus_size = len(session['doc_ids'])
-            coeff = 3
-            session['k'] = round(
-                floor((total_corpus_size +
-                       gathered_corpus_size) / (coeff * pow(10, 4))))
-            kmodel = mbk(n_clusters=session['k'], max_iter=10)
-            kmodel.fit(scatter_vector_space)
-            session['kmodel'] = kmodel
-            session['dist_space'] = kmodel.transform(scatter_vector_space)
+            session['k'] = kmeans_rule(len(app.config['doc_ids']),
+                                       len(session['doc_ids']))
+            session['kmodel'] = mbk(n_clusters=session['k'], max_iter=10)
+            session['kmodel'].fit(session['vector_space'])
+            session['dist_space'] = session['kmodel'].transform(
+                session['vector_space'])
 
             # Count number of documents in each cluster.
-            cluster_doc_counts = [0 for i in range(
-                len(session['kmodel'].cluster_centers_))]
+            session['cluster_doc_counts'] = []
+            for i in range(len(session['kmodel'].cluster_centers_)):
+                session['cluster_doc_counts'].append(
+                    list(session['kmodel'].labels_).count(i))
 
-            for label in session['kmodel'].labels_:
-                cluster_doc_counts[label] += 1
-            session['cluster_doc_counts'] = cluster_doc_counts
-
-            app.logger.debug('Generating cluster representations...')
-            # Get the representations of the clusters.
+            # Get representations for the clusters.
             session['cluster_reps'] =\
                 visualize.get_cluster_reps(session['tfidf'],
                                            session['kmodel'],
                                            session['dist_space'],
                                            app.config['data_file_path'], 50)
 
+            # Initialize new sgform for new k.
             sgform = ScatterGatherForm()
             sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
                                              for i in range(session['k'])]
@@ -311,11 +285,10 @@ def index(current_page=0):
                                    50)
 
     # Count number of documents in each cluster.
-    cluster_doc_counts = [0 for i in range(
-        len(session['kmodel'].cluster_centers_))]
-    for label in session['kmodel'].labels_:
-        cluster_doc_counts[label] += 1
-    session['cluster_doc_counts'] = cluster_doc_counts
+    session['cluster_doc_counts'] = []
+    for i in range(len(session['kmodel'].cluster_centers_)):
+        session['cluster_doc_counts'].append(
+            list(session['kmodel'].labels_).count(i))
 
     return render_template('index.html', sgform=sgform,
                            search_form=search_form,
