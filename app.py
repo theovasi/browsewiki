@@ -95,8 +95,10 @@ def k_nearest_docs_for_page(query, cluster_view_id, page):
     nearest_titles = []
     nearest_summaries = []
     nearest_links = []
-    vector = session['tfidf_model'][session['dictionary'].doc2bow(
-        stem(query))]
+    tfidf_model = joblib.load(
+        '{}/tfidf_model.txt'.format(data_file_path))
+    dictionary = joblib.load('{}/dictionary.txt'.format(data_file_path))
+    vector = tfidf_model[dictionary.doc2bow(stem(query))]
     vector.append((session['tfidf'].shape[1] - 1, 0))
     vector_sparse = csc_matrix.transpose(
         matutils.corpus2csc([vector])).tocsr()
@@ -154,9 +156,7 @@ def kmeans_rule(total_corpus_size, gathered_corpus_size):
 def session_init():
     session.clear()
     session['uid'] = uuid.uuid4()
-    session['tfidf_model'] = app.config['tfidf_model']
     session['tfidf'] = app.config['tfidf']
-    session['dictionary'] = app.config['dictionary']
     session['nn_model'] = app.config['nn_model']
     session['vector_space'] = app.config['vector_space']
     session['kmodel'] = app.config['kmodel']
@@ -236,7 +236,11 @@ def index(current_page=0):
                 visualize.get_cluster_reps(session['tfidf'],
                                            session['kmodel'],
                                            session['dist_space'],
-                                           app.config['data_file_path'], 50)
+                                           joblib.load(
+                                               '{}/dictionary.txt'.format(
+                                                   app.config['data_file_path'])),
+                                           joblib.load('{}/lemmatizer.txt'.format(
+                                               app.config['data_file_path'])), 50)
 
             # Initialize new sgform for new k.
             sgform = ScatterGatherForm()
@@ -281,8 +285,11 @@ def index(current_page=0):
         visualize.get_cluster_reps(session['tfidf'],
                                    session['kmodel'],
                                    session['dist_space'],
-                                   app.config['data_file_path'],
-                                   50)
+                                   joblib.load(
+                                       '{}/dictionary.txt'.format(
+                                           app.config['data_file_path'])),
+                                   joblib.load('{}/lemmatizer.txt'.format(
+                                       app.config['data_file_path'])), 50)
 
     # Count number of documents in each cluster.
     session['cluster_doc_counts'] = []
@@ -338,34 +345,16 @@ def send_html(path):
 
 if __name__ == '__main__':
     data_file_path = './appdata'
-    doc_ids = []
-    titles = []
-    summaries = []
-    links = []
-    title_dict = joblib.load('{}/title_dict.txt'.format(data_file_path))
-    link_dict = joblib.load('{}/link_dict.txt'.format(data_file_path))
-    summary_dict = joblib.load(
-        '{}/summary_dict.txt'.format(data_file_path))
-    for i in range(len(title_dict)):
-        doc_ids.append(i)
-        titles.append(title_dict[i])
-        summaries.append(summary_dict[i])
-        links.append(link_dict[i])
+    corpus_frame = joblib.load('{}/corpus_frame.txt'.format(data_file_path))
     app.config['data_file_path'] = data_file_path
-    app.config['doc_ids'] = doc_ids
-    app.config['titles'] = titles
-    app.config['summaries'] = summaries
-    app.config['links'] = links
-    app.config['tfidf_model'] = joblib.load(
-        '{}/tfidf_model.txt'.format(data_file_path))
+    app.config['doc_ids'] = list(corpus_frame.index.values)
+    app.config['titles'] = list(corpus_frame['title'])
+    app.config['summaries'] = list(corpus_frame['summary'])
+    app.config['links'] = list(corpus_frame['link'])
     app.config['tfidf'] = joblib.load(
         '{}/tfidf_sparse.txt'.format(data_file_path))
-    # Train nearest neighbors model.
-    app.config['nn_model'] = nn(n_neighbors=1000, radius=10)
-    app.config['nn_model'].fit(app.config['tfidf'])
-
-    app.config['dictionary'] = joblib.load(
-        '{}/dictionary.txt'.format(data_file_path))
+    app.config['nn_model'] = joblib.load(
+        '{}/nn_model.txt'.format(data_file_path))
     app.config['vector_space'] = joblib.load(
         '{}/topic_space.txt'.format(data_file_path))
     app.config['kmodel'] = joblib.load(
@@ -374,5 +363,4 @@ if __name__ == '__main__':
         '{}/dist_space.txt'.format(data_file_path))
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
-    app.config['cluster_reps'] = None
     app.run(debug=True)

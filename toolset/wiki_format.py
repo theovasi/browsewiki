@@ -11,6 +11,7 @@ from xml.sax.saxutils import escape
 import joblib
 import argparse
 import re
+import pandas as pd
 
 
 def wiki_format(text_file_path,
@@ -39,10 +40,10 @@ def wiki_format(text_file_path,
 
     n_docs = 0
     n_ignored_docs = 0
-    title_dict = dict()
-    link_dict = dict()
-    summary_dict = dict()
-    filepath_dict = dict()
+    titles = []
+    links = []
+    summaries = []
+    filepaths = []
     if ignore_list_path is not None:
         ignore_list = joblib.load(ignore_list_path)
     start_time = time.time()
@@ -98,10 +99,10 @@ def wiki_format(text_file_path,
                         document_file + '_' + str(i)
                     ])
 
-                    title_dict[n_docs] = title
-                    link_dict[n_docs] = link
-                    summary_dict[n_docs] = summary
-                    filepath_dict[n_docs] = filepath
+                    titles.append(title)
+                    links.append(link)
+                    summaries.append(summary)
+                    filepaths.append(filepath)
 
                     with open(filepath, 'wb+') as output_document_file:
                         output_document_file.write(doc.text.encode('utf-8'))
@@ -117,19 +118,21 @@ def wiki_format(text_file_path,
                                                                                        math.floor(n_docs / (time.time() - start_time))))
 
                     if sub_size != None and n_docs >= sub_size:
-                        joblib.dump(title_dict,
-                                    output_file_path + '/title_dict.txt')
-                        joblib.dump(link_dict,
-                                    output_file_path + '/link_dict.txt')
-                        joblib.dump(summary_dict,
-                                    output_file_path + '/summary_dict.txt')
-                        joblib.dump(filepath_dict,
-                                    output_file_path + '/filepath_dict.txt')
+                        corpus_frame = pd.DataFrame({'title': titles,
+                                                     'link': links,
+                                                     'summary': summaries,
+                                                     'filepath': filepaths})
+                        joblib.dump(corpus_frame,
+                                    '{}/corpus_frame.txt'.format(
+                                        output_file_path))
                         return 0
-    joblib.dump(title_dict, output_file_path + '/title_dict.txt')
-    joblib.dump(link_dict, output_file_path + '/link_dict.txt')
-    joblib.dump(summary_dict, output_file_path + '/summary_dict.txt')
-    joblib.dump(filepath_dict, output_file_path + '/filepath_dict.txt')
+    corpus_frame = pd.DataFrame({'title': titles,
+                                 'link': links,
+                                 'summary': summaries,
+                                 'filepath': filepaths})
+    joblib.dump(corpus_frame,
+                '{}/corpus_frame.txt'.format(
+                    output_file_path))
     print('{} documents processed , {} added to the collection, {} ignored.'.format(
           n_docs + n_ignored_docs,
           n_docs, n_ignored_docs))

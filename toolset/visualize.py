@@ -36,7 +36,7 @@ def top_terms(tfidf_vectors, depth=10, top_n=3):
     return best_score_terms
 
 
-def get_cluster_reps(tfidf, kmodel, dist_space, data_file_path, depth):
+def get_cluster_reps(tfidf, kmodel, dist_space, dictionary, lemmatizer, depth):
     """ Represent clusters with their most important words using Tf-Idf.
 
         Args:
@@ -51,18 +51,6 @@ def get_cluster_reps(tfidf, kmodel, dist_space, data_file_path, depth):
 
     """
     cluster_reps = []
-    if os.path.exists('{}/dictionary.txt'.format(data_file_path)):
-        dictionary = joblib.load('{}/dictionary.txt'.format(data_file_path))
-    else:
-        print('No dictionary file found.')
-        sys.exit(0)
-
-    if os.path.exists('{}/lemmatizer.txt'.format(data_file_path)):
-        lemmatizer = joblib.load('{}/lemmatizer.txt'.format(data_file_path))
-    else:
-        print('No lemmatizer file found.')
-        sys.exit(0)
-
     for cluster_id, cluster_center in enumerate(kmodel.cluster_centers_):
         # Find the documents nearest to the cluster center.
         dist_vector = dist_space[:, cluster_id].argsort()

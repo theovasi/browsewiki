@@ -22,8 +22,8 @@ class Corpus:
 
     """
 
-    def __init__(self, filepath_dict_path):
-        self.document_paths = joblib.load(filepath_dict_path)
+    def __init__(self, filepaths):
+        self.document_paths = filepaths
 
     def document_generator(self):
         """ Enables iterating over the documents of the formatted collection.

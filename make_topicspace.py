@@ -10,6 +10,7 @@ from toolset.corpus import Corpus
 from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 from toolset import mogreltk
+from sklearn.neighbors import NearestNeighbors as nn
 
 
 def make_topicspace(data_file_path, stopwords_file_path=None,
@@ -17,8 +18,9 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
     # Allow gensim to print additional info while executing.
     logging.basicConfig(
         format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
-    collection = Corpus(
-        filepath_dict_path=data_file_path + '/filepath_dict.txt')
+    corpus_frame = joblib.load('{}/corpus_frame.txt'.format(data_file_path))
+    filepaths = list(corpus_frame['filepath'])
+    collection = Corpus(filepaths)
     print('-- Loaded corpus')
 
     # First pass of the collection to create the dictionary.
@@ -28,10 +30,12 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         batch_size = 0
         max_batch_size = 2000
         batch = []
+        if stopwords_file_path is not None:
+            with open(stopwords_file_path) as stopwords_file:
+                stopwords = stopwords_file.read().splitlines()
 
         for i, text in enumerate(collection.document_generator()):
-            if stopwords_file_path is not None:
-                stopwords = joblib.load(stopwords_file_path)
+            if stopwords is not None:
                 batch.append(mogreltk.stem(text, stopwords))
             else:
                 batch.append(mogreltk.stem(text))
@@ -123,6 +127,14 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         lemmatizer.fit(collection.document_generator(),
                        stopwords_file_path, True)
         joblib.dump(lemmatizer, '{}/lemmatizer.txt'.format(data_file_path))
+
+    if not os.path.exists('{}/nn_model.txt'.format(data_file_path)):
+        if 'tfidf_sparse' not in locals():
+            tfidf_sparse = joblib.load('{}/tfidf_sparse.txt'.format(data_file_path))
+        nn_model = nn(n_neighbors=1000, radius=10)
+        nn_model.fit(tfidf_sparse)
+        joblib.dump(nn_model, '{}/nn_model.txt'.format(data_file_path))
+
 
 
 if __name__ == '__main__':
