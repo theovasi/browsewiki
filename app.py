@@ -160,7 +160,6 @@ def session_init():
     session['nn_model'] = app.config['nn_model']
     session['vector_space'] = app.config['vector_space']
     session['kmodel'] = app.config['kmodel']
-    session['dist_space'] = app.config['dist_space']
     session['doc_ids'] = app.config['doc_ids']
     session['titles'] = app.config['titles']
     session['summaries'] = app.config['summaries']
@@ -281,6 +280,8 @@ def index(current_page=0):
                                    cluster_doc_counts=session[
                                        'cluster_doc_counts'])
 
+    session['dist_space'] = session['kmodel'].transform(
+        session['vector_space'])
     session['cluster_reps'] =\
         visualize.get_cluster_reps(session['tfidf'],
                                    session['kmodel'],
@@ -344,7 +345,7 @@ def send_html(path):
 
 
 if __name__ == '__main__':
-    data_file_path = './appdata'
+    data_file_path = '../appdata_12'
     corpus_frame = joblib.load('{}/corpus_frame.txt'.format(data_file_path))
     app.config['data_file_path'] = data_file_path
     app.config['doc_ids'] = list(corpus_frame.index.values)
@@ -359,8 +360,6 @@ if __name__ == '__main__':
         '{}/topic_space.txt'.format(data_file_path))
     app.config['kmodel'] = joblib.load(
         '{}/kmodel.txt'.format(data_file_path))
-    app.config['dist_space'] = joblib.load(
-        '{}/dist_space.txt'.format(data_file_path))
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
     app.run(debug=True)

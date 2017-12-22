@@ -52,10 +52,12 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
     if not os.path.exists(data_file_path + '/corpus.txt'):
         if 'dictionary' not in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
+            if stopwords_file_path is not None:
+                with open(stopwords_file_path) as stopwords_file:
+                    stopwords = stopwords_file.read().splitlines()
             print('-- Loaded dictionary')
         print('-- Generating corpus')
-        if stopwords_file_path is not None:
-            stopwords = joblib.load(stopwords_file_path)
+        if stopwords is not None:
             corpus = [dictionary.doc2bow(mogreltk.stem(text, stopwords))
                       for text in collection.document_generator()]
         else:
