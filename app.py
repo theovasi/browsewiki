@@ -310,11 +310,10 @@ def view_page(current_page):
     sgform = ScatterGatherForm()
     search_form = SearchForm()
 
-    n_clusters = len(app.config['kmodel'].cluster_centers_)
     sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
-                                     for i in range(n_clusters)]
+                                     for i in range(session['k'])]
     sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
-                                   for i in range(n_clusters)]
+                                   for i in range(session['k'])]
 
     app.logger.debug(session['pagination'].source)
     if session['pagination'].source == 'search':
@@ -345,7 +344,7 @@ def send_html(path):
 
 
 if __name__ == '__main__':
-    data_file_path = '../appdata_12'
+    data_file_path = './appdata'
     corpus_frame = joblib.load('{}/corpus_frame.txt'.format(data_file_path))
     app.config['data_file_path'] = data_file_path
     app.config['doc_ids'] = list(corpus_frame.index.values)
