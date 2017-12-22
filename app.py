@@ -215,6 +215,7 @@ def index(current_page=0):
             session['doc_ids'], session['titles'], session['summaries'],\
                 session['links'], session['vector_space'], session['tfidf'] =\
                 gather(session, selected_clusters)
+            session['nn_model'].fit(session['tfidf'])
 
             # Perform the clustering using the new vector space.
             session['k'] = kmeans_rule(len(app.config['doc_ids']),
