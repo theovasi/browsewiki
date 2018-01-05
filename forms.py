@@ -1,6 +1,6 @@
 from flask import session
 from flask_wtf import FlaskForm
-from wtforms import RadioField, SelectMultipleField, widgets, StringField
+from wtforms import RadioField, SelectMultipleField, widgets, TextField
 from wtforms.validators import DataRequired, url
 import joblib
 
@@ -15,4 +15,4 @@ class ScatterGatherForm(FlaskForm):
 
 
 class SearchForm(FlaskForm):
-    query = StringField(label='search_query')
+    query = TextField(label='search_query')

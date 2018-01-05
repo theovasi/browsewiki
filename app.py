@@ -48,15 +48,15 @@ class Pagination(object):
         return self.current_page < self.n_pages()
 
     def iter_pages(self):
-        if self.current_page < 6:
-            for page_num in range(min(12, self.n_pages())):
+        if self.current_page < 4:
+            for page_num in range(min(6, self.n_pages())):
                 yield page_num
-        elif self.current_page > (self.n_pages() - 6):
-            for page_num in range(self.n_pages() - 12, self.n_pages()):
+        elif self.current_page > (self.n_pages() - 4):
+            for page_num in range(self.n_pages() - 6, self.n_pages()):
                 yield page_num
         else:
-            mid = min(6 + (self.current_page - 5), self.n_pages())
-            for page_num in range(max(mid - 6, 0), min(mid + 6, self.n_pages())):
+            mid = min(4 + (self.current_page - 3), self.n_pages())
+            for page_num in range(max(mid - 4, 0), min(mid + 2, self.n_pages())):
                 yield page_num
 
 
@@ -83,7 +83,7 @@ def docs_for_page(cluster_view_id, page):
         if session['kmodel'].labels_[doc_id] == int(cluster_view_id):
             filtered_nearest_doc_ids.append(doc_id)
 
-    for doc_id in filtered_nearest_doc_ids[page * 16:(page + 1) * 16]:
+    for doc_id in filtered_nearest_doc_ids[page * 14:(page + 1) * 14]:
         nearest_titles.append(session['titles'][doc_id])
         nearest_summaries.append(session['summaries'][doc_id])
         nearest_links.append(session['links'][doc_id])
@@ -111,7 +111,7 @@ def k_nearest_docs_for_page(query, cluster_view_id, page):
         if session['kmodel'].labels_[doc_id] == int(cluster_view_id):
             filtered_nearest_doc_ids.append(doc_id)
 
-    for doc_id in filtered_nearest_doc_ids[page * 16:(page + 1) * 16]:
+    for doc_id in filtered_nearest_doc_ids[page * 14:(page + 1) * 14]:
         nearest_titles.append(session['titles'][doc_id])
         nearest_summaries.append(session['summaries'][doc_id])
         nearest_links.append(session['links'][doc_id])
@@ -263,7 +263,7 @@ def index(current_page=0):
                 docs_for_page(cluster_view_id, current_page)
             session['pagination'] = Pagination('view',
                                                cluster_view_id, current_page,
-                                               16, n_docs)
+                                               14, n_docs)
             sgform = ScatterGatherForm()
             sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
                                              for i in range(session['k'])]
@@ -345,7 +345,7 @@ def send_html(path):
 
 
 if __name__ == '__main__':
-    data_file_path = './appdata'
+    data_file_path = './appdata_12'
     corpus_frame = joblib.load('{}/corpus_frame.txt'.format(data_file_path))
     app.config['data_file_path'] = data_file_path
     app.config['doc_ids'] = list(corpus_frame.index.values)

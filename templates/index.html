@@ -11,6 +11,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
         <link rel="stylesheet" href="static/css/bootstrap.css">
+        <link rel="stylesheet" href="static/css/font-awesome.min.css">
         <style>
             body {
                 padding-top: 50px;
@@ -22,92 +23,103 @@
         <script src="static/js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
     </head>
     <body>
-        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="navbar-brand brand" href="/">OWLengine</a>
+        <nav class="navbar navbar-fixed-top navbar-inverse top-bar">
+            <div class="navber-inner">
+                <div class="container" style="height: 100%; min-height: 100%;">
+                        <div class="row" style="height: 100px;">
+                            <div class="navbar-header" style="width: 128px; height: 62px; margin-top: 19px;">
+                                <a href="/"><img width="128" height="62" src="static/browsewiki.png" alt=""></a>
+                            </div>
+                            <a class="github-banner" href="https://github.com/theovasi/browsewiki"><i class="fa fa-github fa-2x" style="" aria-hidden="true"></i></a>
+                        </div>
+                </div>
             </div>
-          </div>
         </nav>
-        <div class="container" style="padding:0;">
-            <form method="POST" id="sg-form" class="col-md-6 form-group" action="{{ url_for('index') }}">
-                <div class="col menubar" style="height: 40px;">
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-success"><input type="submit" name="sgform" class="hidden">Browse</button>
-                    </div>
-                </div>
-                {% for view_input in sgform.cluster_view %}
-                <div class="col-md-6 list-group-item" style="height: 200px; padding:0;">
-                    <div class="cluster-rep" style="height:160px;">
-                        {{ cluster_reps[loop.index0][0] }}
-                        -
-                        {{ cluster_reps[loop.index0][1] }}
-                        -
-                        {{ cluster_reps[loop.index0][2] }} </br>
-                    </div>
-                    <div class="col-md-6 bottom-align-text">
-                        {{cluster_doc_counts[loop.index0]}} entries
-                    </div>
-                    <div class="btn-group pull-right" data-toggle="buttons" style="height: 40px;">
-                        <label class="btn btn-default select-button" style="height:100%; text-align: center">{{ select_list[loop.index0] }}Select</label>
-                        <label class="btn btn-default view-button" style="height:100%;">{{ view_input }}View</label>
-                    </div>
-                </div>
-                {% endfor %}
-            </form>
-            <div class="col-md-6">
-                <form method="POST" id="search-form" class="col-md-11 menubar" style="height: 40px;" action="{{ url_for('index') }}">
-                    <label type="text" >{{ search_form.query(placeholder="Search in cluster") }}<label/>
-                    <!--<label class="btn btn-sm btn-success pull-right glyphicon glyphicon-search"></label>-->
-                </form>
-                {% if titles is defined %}
-                {% for i in range(titles | length) %}
-                <div class="row" style="background-color: #bbb;height 50px;">
-                    <a href="https://el.wikipedia.org/wiki/{{ links[i] }}" class="list-group-item list-group-item-action flex-column align-items-start" style="height: 50px;">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">{{ titles[i] }}</h5>
-                    </div>
-                    </a>
-               </div>
-                {% endfor %}
-                <form role="form", id="page-form" method="POST">
-                    <ul class="pagination pagination-sm justify-content-center">
-                        {% if pagination.current_page > 5 %}
-                        <li class="prev-page-button"><a href="{{ url_for_page(0) }}">First</a></li>
-                        {% endif %}
-                        {% if pagination.has_prev() %}
-                        <li class="prev-page-button"><a href="{{ url_for_page(pagination.current_page-1) }}">Previous</a></li>
-                        {% endif %}
-                        {% for i in pagination.iter_pages() %}
-                        {% if i == pagination.current_page %}
-                        <li class="page-button active"><a href="{{ url_for_page(i) }}">{{ i+1 }}</a></li>
-                        {% else %}
-                        <li class="page-button"><a href="{{ url_for_page(i) }}">{{ i+1 }}</a></li>
-                        {% endif %}
+        <div class="wrapper">
+            <div class="container" style="margin-top: 50px;">
+                <div class="row justify-content-center">
+                    <form method="POST" id="sg-form" class="col-sm-7 form-group" action="{{ url_for('index') }}" style="padding: 0;">
+                        <div style="padding: 0; margin-right: 20px;">
+                            <button class="btn btn-block btn-raised btn-primary browse-button"><input type="submit" name="sgform" class="hidden">BROWSE</button>
+                        </div>
+                        {% for view_input in sgform.cluster_view %}
+                        <div class="col-md-6" style="padding: 0; padding-right: 20px;">
+                            <div class="cluster shadow-depth-1">
+                                <div class="cluster-rep cluster-top">
+                                    {{ cluster_reps[loop.index0][0] }}
+                                    -
+                                    {{ cluster_reps[loop.index0][1] }}
+                                    -
+                                    {{ cluster_reps[loop.index0][2] }} </br>
+                                </div>
+                                <div class="cluster-bottom">
+                                    <div class="bottom-align-text cluster-count">
+                                        {{cluster_doc_counts[loop.index0]}} entries
+                                    </div>
+                                    <div class="btn-group pull-right cluster-buttons" data-toggle="buttons">
+                                        <label class="btn btn-raised btn-primary btn-sm select-button" style="height: 100%;">{{ select_list[loop.index0] }}SELECT</label>
+                                        <label class="btn btn-raised btn-primary btn-sm view-button" style="height: 100%;">{{ view_input }}VIEW</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         {% endfor %}
-                        {% if pagination.has_next() %}
-                        <li class="next-page-button"><a href="{{ url_for_page(pagination.current_page+1) }}">Next</a></li>
-                        {% endif %}
-                        {% if pagination.current_page < pagination.n_pages() - 6 %}
-                        <li class="prev-page-button"><a href="{{ url_for_page(pagination.n_pages()-1) }}">Last</a></li>
-                        {% endif %}
-                    </ul>
-                </form>
-                {% endif %}
-          </div>
-        </div> <!-- /container -->
+                    </form>
+                    <div class="col-sm-5" style="padding: 0;">
+                        <form method="POST" id="search-form" class="menubar" style="padding: 0;" action="{{ url_for('index') }}">
+                            <div style="width: 100%;">{{ search_form.query(placeholder="Search in cluster", class_="search-bar shadow-depth-1") }}</div>
+                            <!--<label class="btn btn-sm btn-success pull-right glyphicon glyphicon-search"></label>-->
+                        </form>
+                        {% if titles is defined %}
+                        <div class="document-wrapper">   
+                            {% for i in range(titles | length) %}
+                            <a href="https://el.wikipedia.org/wiki/{{ links[i] }}" class="document shadow-depth-bottom-1">
+                                <div class="title">{{ titles[i] }}</div>
+                                <div class="summary">{{ summaries[i] }}</div>
 
-        <hr>
-
-        <footer>
-            <p>&copy; Theodoros Vasileiadis 2017</p>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        <form role="form", id="page-form" method="POST" style="margin-top: 10px;">
+                            <ul class="pagination pagination-sm justify-content-center pagination-list">
+                                {% if pagination.current_page > 3 %}
+                                <li class="prev-page-button"><a href="{{ url_for_page(0) }}">First</a></li>
+                                {% endif %}
+                                {% if pagination.has_prev() %}
+                                <li class="prev-page-button"><a href="{{ url_for_page(pagination.current_page-1) }}">Previous</a></li>
+                                {% endif %}
+                                {% for i in pagination.iter_pages() %}
+                                {% if i == pagination.current_page %}
+                                <li class="page-button active"><a href="{{ url_for_page(i) }}">{{ i+1 }}</a></li>
+                                {% else %}
+                                <li class="page-button"><a href="{{ url_for_page(i) }}">{{ i+1 }}</a></li>
+                                {% endif %}
+                                {% endfor %}
+                                {% if pagination.has_next() %}
+                                <li class="next-page-button"><a href="{{ url_for_page(pagination.current_page+1) }}">Next</a></li>
+                                {% endif %}
+                                {% if pagination.current_page < pagination.n_pages() - 4 %}
+                                <li class="prev-page-button"><a href="{{ url_for_page(pagination.n_pages()-1) }}">Last</a></li>
+                                {% endif %}
+                            </ul>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div> <!-- /container -->
+        </div>
+        <footer class="footer">
+            <div class="container" style="color: white; margin-top: 10px;">
+                <p>&copy; Theodoros Vasileiadis 2018</p>   
+                <a style="text-decoration: none; color:inherit;" href="mailto:someone@example.com?Subject=Hello%20again" target="_top">
+                    <p><i class="fa fa-envelope-o" aria-hidden="true"></i> theo.vasileiadis.work@gmail.com</p>
+                </a>                 
+            </div>
         </footer>
+
+        
+
+        
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="static/js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
 
