@@ -153,14 +153,43 @@ def kmeans_rule(total_corpus_size, gathered_corpus_size):
                gathered_corpus_size) / (coeff * pow(10, 4))))
 
 
-def browse_end_rule(kmodel, threshold=0.1):
-    """ Returns True if the browsing end condition has been reached.
-    
-    The browsing ends when the distance between all the cluster centers
-    is smaller than a threshold value.
+def cluster_optimal_k(vector_space):
+    """ Applies K-means clustering with an optimal K value.
+
+    The optimal K is determined by applying K-means clustering and
+    decreasing the value of K until the distance between all the
+    cluster centers is bigger than a threshold.
 
     Args:
-        kmodel (:obj: `sklearn.cluster.MiniBatchKMeans`): A KMeans model.
+        vector_space(sparse matrix): The vector representation of the text
+            collection.
+
+    Returns:
+        kmodel (:obj: `sklearn.cluster.MiniBatchKMeans`): A K-means model.
+
+    """
+
+    n_clusters = 12
+    kmodel = mbk(n_clusters=n_clusters, max_iter=100)
+    kmodel.fit(vector_space)
+
+    while check_cluster_distance(kmodel) and n_clusters > 1:
+        n_clusters -= 1
+        kmodel = mbk(n_clusters=n_clusters, max_iter=100)
+        kmodel.fit(vector_space)
+
+    return kmodel
+
+
+def check_cluster_distance(kmodel, threshold=0.2):
+    """ Check if two cluster centers are too close. 
+
+    Returns True when the distance between at least two two cluster
+    centers in the K-means model is smaller than a threshold.
+
+
+    Args:
+        kmodel (:obj: `sklearn.cluster.MiniBatchKMeans`): A K-means model.
 
     """
     edist_space = edist(kmodel.cluster_centers_)
@@ -237,15 +266,11 @@ def index(current_page=0):
             session['nn_model'].fit(session['tfidf'])
 
             # Perform the clustering using the new vector space.
-            session['k'] = kmeans_rule(len(app.config['doc_ids']),
-                                       len(session['doc_ids']))
-            session['kmodel'] = mbk(n_clusters=session['k'], max_iter=10)
-            session['kmodel'].fit(session['vector_space'])
+            session['kmodel'] = cluster_optimal_k(session['vector_space'])
+            session['k'] = len(session['kmodel'].cluster_centers_)
             session['dist_space'] = session['kmodel'].transform(
                 session['vector_space'])
 
-            if browse_end_rule(session['kmodel']):
-                app.logger.debug('\nEnd condition met.\n')
 
             # Count number of documents in each cluster.
             session['cluster_doc_counts'] = []
