@@ -15,6 +15,7 @@ from scipy.sparse import csc_matrix
 from gensim import matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 from sklearn.neighbors import NearestNeighbors as nn
+from sklearn.metrics.pairwise import euclidean_distances as edist
 from collections import Counter
 from operator import itemgetter
 from toolset import visualize
@@ -146,10 +147,28 @@ def gather(session, selected_clusters):
 
 
 def kmeans_rule(total_corpus_size, gathered_corpus_size):
-    coeff = 3
+    coeff = 2
     return round(
         floor((total_corpus_size +
                gathered_corpus_size) / (coeff * pow(10, 4))))
+
+
+def browse_end_rule(kmodel, threshold=0.1):
+    """ Returns True if the browsing end condition has been reached.
+    
+    The browsing ends when the distance between all the cluster centers
+    is smaller than a threshold value.
+
+    Args:
+        kmodel (:obj: `sklearn.cluster.MiniBatchKMeans`): A KMeans model.
+
+    """
+    edist_space = edist(kmodel.cluster_centers_)
+    for dist_vector in edist_space:
+        for distance in list(dist_vector):
+            if distance > 0 and distance < threshold:
+                return True
+    return False
 
 
 @app.route('/')
@@ -225,6 +244,9 @@ def index(current_page=0):
             session['dist_space'] = session['kmodel'].transform(
                 session['vector_space'])
 
+            if browse_end_rule(session['kmodel']):
+                app.logger.debug('\nEnd condition met.\n')
+
             # Count number of documents in each cluster.
             session['cluster_doc_counts'] = []
             for i in range(len(session['kmodel'].cluster_centers_)):
@@ -244,6 +266,7 @@ def index(current_page=0):
 
             # Initialize new sgform for new k.
             sgform = ScatterGatherForm()
+            sgform.cluster_select.data = []
             sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
                                              for i in range(session['k'])]
             sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
@@ -264,7 +287,10 @@ def index(current_page=0):
             session['pagination'] = Pagination('view',
                                                cluster_view_id, current_page,
                                                14, n_docs)
+
+            # Clear sgform selected clusters.
             sgform = ScatterGatherForm()
+            sgform.cluster_select.data = []
             sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
                                              for i in range(session['k'])]
             sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
@@ -362,4 +388,4 @@ if __name__ == '__main__':
         '{}/kmodel.txt'.format(data_file_path))
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
-    app.run(debug=True)
+    app.run(debug=True, host="192.168.1.4")
