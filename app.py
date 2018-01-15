@@ -181,7 +181,7 @@ def cluster_optimal_k(vector_space):
     return kmodel
 
 
-def check_cluster_distance(kmodel, threshold=0.2):
+def check_cluster_distance(kmodel, threshold=0.15):
     """ Check if two cluster centers are too close. 
 
     Returns True when the distance between at least two two cluster
@@ -197,6 +197,7 @@ def check_cluster_distance(kmodel, threshold=0.2):
         for distance in list(dist_vector):
             if distance > 0 and distance < threshold:
                 return True
+    app.logger.debug(edist_space)
     return False
 
 
@@ -305,7 +306,7 @@ def index(current_page=0):
                                        'cluster_doc_counts'])
 
         elif 'cluster_view' in request.form:
-            cluster_view_id = sgform.cluster_view.data[0]
+            cluster_view_id = sgform.cluster_view.data
             app.logger.debug(cluster_view_id)
             n_docs, nearest_titles, nearest_summaries, nearest_links =\
                 docs_for_page(cluster_view_id, current_page)
@@ -331,6 +332,7 @@ def index(current_page=0):
                                    links=nearest_links,
                                    cluster_doc_counts=session[
                                        'cluster_doc_counts'])
+
 
     session['dist_space'] = session['kmodel'].transform(
         session['vector_space'])
@@ -413,4 +415,4 @@ if __name__ == '__main__':
         '{}/kmodel.txt'.format(data_file_path))
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
-    app.run(debug=True, host="192.168.1.4")
+    app.run(debug=True)
