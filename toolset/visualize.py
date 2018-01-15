@@ -2,11 +2,13 @@ import os
 import sys
 import joblib
 import numpy as np
+import random
+
 from toolset import mogreltk
 from collections import Counter
 
 
-def top_terms(tfidf_vectors, depth=10, top_n=3):
+def top_terms(tfidf_vectors, depth=100, top_n=3):
     """ Find terms with the highest cumulative Tf-Idf score across all vectors.
 
         Args:
@@ -53,11 +55,17 @@ def get_cluster_reps(tfidf, kmodel, dist_space, dictionary, lemmatizer, depth):
     cluster_reps = []
     for cluster_id, cluster_center in enumerate(kmodel.cluster_centers_):
         # Find the documents nearest to the cluster center.
-        dist_vector = dist_space[:, cluster_id].argsort()
-        nearest_doc_ids = dist_vector[:depth]
-
         tfidf_vectors = []
-        for doc_id in nearest_doc_ids:
+        
+        cluster_doc_ids = []
+        for doc_id, label in enumerate(kmodel.labels_):
+            if label == cluster_id:
+                cluster_doc_ids.append(doc_id)
+        # 10% of documents in cluster.
+        sample_size = int(len(cluster_doc_ids)*0.05)
+        random_sample_ids = random.sample(cluster_doc_ids, sample_size)
+
+        for doc_id in random_sample_ids:
             tfidf_vector_dense = tfidf.getrow(doc_id).todense()
             tfidf_vectors.append(tfidf_vector_dense)
         # Find the terms in the cluster with the best cumulative Tf/Idf score.
@@ -66,15 +74,12 @@ def get_cluster_reps(tfidf, kmodel, dist_space, dictionary, lemmatizer, depth):
                                     tfidf_vectors, depth, top_n=100)]
         cluster_reps.append(most_important_terms)
 
-    # TODO: Refactor the filtering.
+    rep_terms = [term for rep in cluster_reps for term in rep[:3]]
+    rep_term_frequencies = Counter(rep_terms)
+
     changed = True
     while changed:
         changed = False
-        # Make dict with term as key and frequency in all representations
-        # as value.
-        rep_terms = [term for rep in cluster_reps for term in rep[:3]]
-        rep_term_frequencies = dict()
-        rep_term_frequencies = Counter(rep_terms)
 
         # Filter out terms that appear in more than one cluster representation.
         # Stop filtering when the representation of a cluster has less than
@@ -84,16 +89,16 @@ def get_cluster_reps(tfidf, kmodel, dist_space, dictionary, lemmatizer, depth):
         for index, rep in enumerate(cluster_reps):
             filtered_rep = []
             for term in rep:
-                if (len(rep) - len(filtered_rep)) <= 3 or\
-                        rep_term_frequencies[term] <= 1:
+                if (len(rep) - index - 1) <= (3 - len(filtered_rep)) or\
+                        rep_term_frequencies[term] < 3:
                     filtered_rep.append(term)
                 else:
                     changed = True
                     removed_terms.append(term)
             filtered_cluster_reps.append(filtered_rep)
 
-        cluster_reps = [rep[:3] for rep in filtered_cluster_reps]
-
+        cluster_reps = [rep for rep in filtered_cluster_reps]
+    
     return cluster_reps
 
 
