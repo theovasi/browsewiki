@@ -11,6 +11,8 @@ from gensim import corpora, models, matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 from toolset import mogreltk
 from sklearn.neighbors import NearestNeighbors as nn
+from toolset.cluster_metrics import cluster_metrics
+from toolset.visualize import get_cluster_reps 
 
 
 def make_topicspace(data_file_path, stopwords_file_path=None,
@@ -117,11 +119,20 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         if not 'topic_space' in locals():
             topic_space = joblib.load(data_file_path + '/topic_space.txt')
             print('-- Loaded topic space matrix')
-        kmodel = mbk(n_clusters=n_clusters, n_init=10,
-                     reassignment_ratio=0.03, verbose=True)
-        kmodel.fit(topic_space)
+        best_silhouette_score = -1
+        best_kmodel = None
+        for index in range(100):
+            kmodel = mbk(n_clusters=n_clusters, n_init=100,
+                         reassignment_ratio=0.03)
+            kmodel.fit(topic_space)
+            silhouette_score = cluster_metrics(kmodel, topic_space)
+            if best_silhouette_score < silhouette_score:
+                best_silhouette_score = silhouette_score
+                best_kmodel = kmodel
         dist_space = kmodel.transform(topic_space)
-        joblib.dump(kmodel, data_file_path + '/kmodel.txt')
+        print('Picked K-means model with silhouette score: {}'.format(
+              best_silhouette_score))
+        joblib.dump(best_kmodel, data_file_path + '/kmodel.txt')
         joblib.dump(dist_space, data_file_path + '/dist_space.txt')
 
     if not os.path.exists('{}/lemmatizer.txt'.format(data_file_path)):
