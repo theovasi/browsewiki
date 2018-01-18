@@ -38,7 +38,7 @@ def top_terms(tfidf_vectors, depth=100, top_n=3):
     return best_score_terms
 
 
-def get_cluster_reps(tfidf, kmodel, dist_space, dictionary, lemmatizer, depth):
+def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
     """ Represent clusters with their most important words using Tf-Idf.
 
         Args:
@@ -61,7 +61,7 @@ def get_cluster_reps(tfidf, kmodel, dist_space, dictionary, lemmatizer, depth):
         for doc_id, label in enumerate(kmodel.labels_):
             if label == cluster_id:
                 cluster_doc_ids.append(doc_id)
-        # 10% of documents in cluster.
+        # 5% of documents in cluster.
         sample_size = int(len(cluster_doc_ids)*0.05)
         random_sample_ids = random.sample(cluster_doc_ids, sample_size)
 
@@ -90,7 +90,7 @@ def get_cluster_reps(tfidf, kmodel, dist_space, dictionary, lemmatizer, depth):
             filtered_rep = []
             for term in rep:
                 if (len(rep) - index - 1) <= (3 - len(filtered_rep)) or\
-                        rep_term_frequencies[term] < 3:
+                        rep_term_frequencies[term] < 2:
                     filtered_rep.append(term)
                 else:
                     changed = True

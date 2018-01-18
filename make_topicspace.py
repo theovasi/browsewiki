@@ -141,6 +141,23 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
                        stopwords_file_path, True)
         joblib.dump(lemmatizer, '{}/lemmatizer.txt'.format(data_file_path))
 
+    # Generate cluster labels.
+    if not os.path.exists('{}/cluster_reps.txt'.format(data_file_path)):
+        if not 'tfidf_sparse' in locals():
+            tfidf_sparse = joblib.load(data_file_path + '/tfidf_sparse.txt')
+            print('-- Loaded tfidf matrix.')
+        if not 'best_kmodel' in locals():
+            best_kmodel = joblib.load(data_file_path + '/kmodel.txt')
+            print('-- Loaded K-means model.')
+        if not 'dictionary' in locals():
+            dictionary = joblib.load(data_file_path + '/dictionary.txt')
+            print('-- Loaded dictionary.')
+        if not 'lemmatizer' in locals():
+            lemmatizer = joblib.load(data_file_path + '/lemmatizer.txt')
+            print('-- Loaded lemmatizer.')
+        cluster_reps = get_cluster_reps(tfidf_sparse, best_kmodel, dictionary, lemmatizer)
+        joblib.dump(cluster_reps, '{}/cluster_reps.txt'.format(data_file_path))
+
     if not os.path.exists('{}/nn_model.txt'.format(data_file_path)):
         if 'tfidf_sparse' not in locals():
             tfidf_sparse = joblib.load('{}/tfidf_sparse.txt'.format(data_file_path))

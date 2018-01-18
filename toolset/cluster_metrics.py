@@ -14,11 +14,11 @@ def cluster_metrics(kmodel, vector_space):
 
     """
     silhouette = metrics.silhouette_score(vector_space, kmodel.labels_,
-                                          metric='euclidean')
-    calhar = metrics.calinski_harabaz_score(
-        vector_space.toarray(), kmodel.labels_)
+                                          metric='euclidean', sample_size=10000)
+   #   calhar = metrics.calinski_harabaz_score(
+   #       vector_space.toarray(), kmodel.labels_)
 
-    return silhouette, calhar
+    return silhouette
 
 
 if __name__ == '__main__':
