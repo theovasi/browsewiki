@@ -12,6 +12,7 @@ import joblib
 import argparse
 import re
 import pandas as pd
+from nltk import sent_tokenize, word_tokenize
 
 
 def wiki_format(text_file_path,
@@ -37,7 +38,6 @@ def wiki_format(text_file_path,
     if os.path.exists(output_file_path):
         shutil.rmtree(output_file_path)
         os.makedirs(output_file_path)
-
     n_docs = 0
     n_ignored_docs = 0
     titles = []
@@ -92,7 +92,27 @@ def wiki_format(text_file_path,
                         continue
 
                     link = title.replace(' ', '_')
-                    summary = doc_text[3][:160]
+                    # Split document in sentences but remove title.
+                    doc_sentences = sent_tokenize(''.join(doc_text[2::])) 
+
+                    # A summary will contain at least the first sentence of
+                    # the document or its first 200 characters.
+                    summary = []
+                    if len(doc_sentences) > 0:
+                        if len(doc_sentences[0]) <= 230:
+                            summary.append(doc_sentences[0])
+                        else:
+                            summary.append(doc_sentences[0][:230])
+                            summary.append('...')
+
+                    index = 0
+                    for index in range(len(doc_sentences)):
+                        if (len(''.join(summary))+len(doc_sentences[index])) < 230:
+                            summary.append(doc_sentences[index])
+                        else:
+                            break
+                    summary = ' '.join(summary)
+
                     # Save each document in a separate file.
                     filepath = '/'.join([
                         output_file_path, 'formatted', document_folder,
@@ -111,13 +131,15 @@ def wiki_format(text_file_path,
                     # is reached.
                     n_docs += 1
                     if sub_size is not None:
-                        print('Picked {}/{} documents at random, {} docs/s'.format(n_docs, sub_size,
-                                                                                   math.floor(n_docs / (time.time() - start_time))))
+                        print('Picked {}/{} documents at random, {} docs/s'.format(
+                              n_docs, sub_size, math.floor(
+                              n_docs / (time.time() - start_time))))
                     elif n_docs % 10000 == 0:
-                        print('Added {} documents to the collection, {} docs/s'.format(n_docs,
-                                                                                       math.floor(n_docs / (time.time() - start_time))))
+                        print('Added {} documents to the collection, {} docs/s'.format(
+                              n_docs, math.floor(
+                              n_docs / (time.time() - start_time))))
 
-                    if sub_size != None and n_docs >= sub_size:
+                    if sub_size is not None and n_docs >= sub_size:
                         corpus_frame = pd.DataFrame({'title': titles,
                                                      'link': links,
                                                      'summary': summaries,

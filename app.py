@@ -209,6 +209,7 @@ def session_init():
     session['nn_model'] = app.config['nn_model']
     session['vector_space'] = app.config['vector_space']
     session['kmodel'] = app.config['kmodel']
+    session['cluster_reps'] = app.config['cluster_reps']
     session['doc_ids'] = app.config['doc_ids']
     session['titles'] = app.config['titles']
     session['summaries'] = app.config['summaries']
@@ -283,7 +284,6 @@ def index(current_page=0):
             session['cluster_reps'] =\
                 visualize.get_cluster_reps(session['tfidf'],
                                            session['kmodel'],
-                                           session['dist_space'],
                                            joblib.load(
                                                '{}/dictionary.txt'.format(
                                                    app.config['data_file_path'])),
@@ -336,15 +336,6 @@ def index(current_page=0):
 
     session['dist_space'] = session['kmodel'].transform(
         session['vector_space'])
-    session['cluster_reps'] =\
-        visualize.get_cluster_reps(session['tfidf'],
-                                   session['kmodel'],
-                                   session['dist_space'],
-                                   joblib.load(
-                                       '{}/dictionary.txt'.format(
-                                           app.config['data_file_path'])),
-                                   joblib.load('{}/lemmatizer.txt'.format(
-                                       app.config['data_file_path'])), 50)
 
     # Count number of documents in each cluster.
     session['cluster_doc_counts'] = []
@@ -398,7 +389,7 @@ def send_html(path):
 
 
 if __name__ == '__main__':
-    data_file_path = './appdata_12'
+    data_file_path = './appdata'
     corpus_frame = joblib.load('{}/corpus_frame.txt'.format(data_file_path))
     app.config['data_file_path'] = data_file_path
     app.config['doc_ids'] = list(corpus_frame.index.values)
@@ -413,6 +404,8 @@ if __name__ == '__main__':
         '{}/topic_space.txt'.format(data_file_path))
     app.config['kmodel'] = joblib.load(
         '{}/kmodel.txt'.format(data_file_path))
+    app.config['cluster_reps'] = joblib.load(
+        '{}/cluster_reps.txt'.format(data_file_path))
     # Constant that is used in the k(number of clusters) decision rule.
     app.config['k'] = len(app.config['kmodel'].cluster_centers_)
     app.run(debug=True)
