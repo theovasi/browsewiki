@@ -293,6 +293,7 @@ def index(current_page=0):
             # Initialize new sgform for new k.
             sgform = ScatterGatherForm()
             sgform.cluster_select.data = []
+            sgform.cluster_view.data = []
             sgform.cluster_select.choices = [(i, 'cluster_{}'.format(i))
                                              for i in range(session['k'])]
             sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))

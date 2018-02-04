@@ -74,7 +74,7 @@ def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
                                     tfidf_vectors, depth, top_n=100)]
         cluster_reps.append(most_important_terms)
 
-    rep_terms = [term for rep in cluster_reps for term in rep[:3]]
+    rep_terms = [term for rep in cluster_reps for term in rep]
     rep_term_frequencies = Counter(rep_terms)
 
     changed = True

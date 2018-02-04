@@ -1,6 +1,7 @@
 $(document).ready(function() {
     'use strict';
     $('.summary').hide();
+
     //$('input[name=cluster_select]').removeAttr('checked');
     $('.select-button').on('change', function() {
         if ($(this).hasClass('active')) {
