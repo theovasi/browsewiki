@@ -6,6 +6,7 @@ import random
 
 from toolset import mogreltk
 from collections import Counter
+from operator import add
 
 
 def top_terms(tfidf_vectors, depth=100, top_n=3):
@@ -20,22 +21,14 @@ def top_terms(tfidf_vectors, depth=100, top_n=3):
         Returns:
             top_terms (list): The terms with the highest cumulative Tf-Idf score.
     """
-    # A dictionary that matches term ids to cumulative Tf-Idf score.
-    term_dict = dict()
-    for vector in tfidf_vectors:
-        for term_id in vector.argsort().tolist()[0][::-1][:depth]:
-            if term_id not in term_dict:
-                term_dict[term_id] = vector.tolist()[0][term_id]
-            else:
-                term_dict[term_id] += vector.tolist()[0][term_id]
+    tfidf_sum = []
+    for index, vector in enumerate(tfidf_vectors):
+        if index == 0:
+            tfidf_sum = np.array(vector)
+        else:
+            tfidf_sum = tfidf_sum + np.array(vector)
 
-    # Find the n terms with the highest cumulative Tf-Idf score.
-    terms = list(term_dict.keys())
-    tfidf_scores = list(term_dict.values())
-    sorted_tfidf_scores = np.argsort(tfidf_scores).tolist()[::-1][:top_n]
-    best_score_terms = [terms[index] for index in sorted_tfidf_scores]
-
-    return best_score_terms
+    return np.argsort(tfidf_sum).tolist()[::-1][:top_n]
 
 
 def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
@@ -56,17 +49,17 @@ def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
     for cluster_id, cluster_center in enumerate(kmodel.cluster_centers_):
         # Find the documents nearest to the cluster center.
         tfidf_vectors = []
-        
+
         cluster_doc_ids = []
         for doc_id, label in enumerate(kmodel.labels_):
             if label == cluster_id:
                 cluster_doc_ids.append(doc_id)
         # 5% of documents in cluster.
-        sample_size = int(len(cluster_doc_ids)*0.05)
+        sample_size = int(len(cluster_doc_ids) * 0.2)
         random_sample_ids = random.sample(cluster_doc_ids, sample_size)
 
         for doc_id in random_sample_ids:
-            tfidf_vector_dense = tfidf.getrow(doc_id).todense()
+            tfidf_vector_dense = tfidf.getrow(doc_id).todense().tolist()[0]
             tfidf_vectors.append(tfidf_vector_dense)
         # Find the terms in the cluster with the best cumulative Tf/Idf score.
         most_important_terms = [lemmatizer.stem2lemma(dictionary[term_id])
@@ -74,32 +67,30 @@ def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
                                     tfidf_vectors, depth, top_n=100)]
         cluster_reps.append(most_important_terms)
 
-    rep_terms = [term for rep in cluster_reps for term in rep]
-    rep_term_frequencies = Counter(rep_terms)
-
     changed = True
+    removed_terms = []
     while changed:
         changed = False
+        rep_terms = [term for rep in cluster_reps for term in rep[:3]]
+        rep_term_frequencies = Counter(rep_terms)
 
         # Filter out terms that appear in more than one cluster representation.
-        # Stop filtering when the representation of a cluster has less than
-        # 3 terms.
         filtered_cluster_reps = []
-        removed_terms = []
+
         for index, rep in enumerate(cluster_reps):
             filtered_rep = []
             for term in rep:
-                if (len(rep) - index - 1) <= (3 - len(filtered_rep)) or\
-                        rep_term_frequencies[term] < 2:
+                if rep_term_frequencies[term] < 2:
                     filtered_rep.append(term)
                 else:
-                    changed = True
                     removed_terms.append(term)
+                    changed = True
             filtered_cluster_reps.append(filtered_rep)
-
         cluster_reps = [rep for rep in filtered_cluster_reps]
-    
-    return cluster_reps
+
+    removed_term_freq = Counter(removed_terms)
+    most_common_removed = [term_tuple for term_tuple in removed_term_freq]
+    return cluster_reps, most_common_removed
 
 
 def get_cluster_category(kmodel, data_file_path, depth):

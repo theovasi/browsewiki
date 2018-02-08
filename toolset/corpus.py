@@ -75,6 +75,7 @@ class Corpus:
         stat_log['max_doc_size'] = max_doc_size
         stat_log['min_doc_size'] = min_doc_size
         stat_log['avg_doc_size'] = round(total_doc_size / n_docs, 1)
+        stat_log['total_doc_size'] = total_doc_size
 
         if verbose:
             print()
@@ -85,5 +86,6 @@ class Corpus:
             print('\tMax: ' + str(max_doc_size))
             print('\tMin: ' + str(min_doc_size))
             print('\tAverage: ' + str(round(total_doc_size / n_docs, 1)))
+            print('\tTotal words: ' + str(total_doc_size))
 
         return stat_log

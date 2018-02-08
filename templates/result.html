@@ -38,7 +38,7 @@
         <div class="wrapper">
             <div class="container" style="margin-top: 50px;">
                 <div class="row justify-content-center">
-                    <form method="POST" id="sg-form" class="col-sm-7 form-group" action="{{ url_for('index') }}" style="padding: 0;">
+                    <form method="POST" id="sg-form" class="col-sm-4 form-group" action="{{ url_for('index') }}" style="padding: 0;">
                         <div style="padding: 0; margin-right: 20px;">
                             <button class="btn btn-block btn-raised btn-primary browse-button"><input type="submit" name="sgform" class="hidden">BROWSE</button>
                         </div>
@@ -47,28 +47,23 @@
                                     Common terms: {{common_terms[0]}}, {{common_terms[1]}}, {{common_terms[2]}}
                         </div>
                         {% endif %}
-                        {% for view_input in sgform.cluster_view %}
-                        <div class="col-md-6" style="padding: 0; padding-right: 20px;">
+
+                        <div class="col-md-12" style="padding: 0; padding-right: 20px;">
                             <div class="cluster shadow-depth-1">
                                 <div class="cluster-rep cluster-top">
-                                    {{ cluster_reps[loop.index0][0] }}
+                                    {{ rep[0] }}
                                     -
-                                    {{ cluster_reps[loop.index0][1] }}
+                                    {{ rep[1] }}
                                     -
-                                    {{ cluster_reps[loop.index0][2] }} </br>
+                                    {{ rep[2] }}</br>
                                 </div>
                                 <div class="cluster-bottom">
                                     <div class="bottom-align-text cluster-count">
-                                        {{cluster_doc_counts[loop.index0]}} entries
-                                    </div>
-                                    <div class="btn-group pull-right cluster-buttons" data-toggle="buttons">
-                                        <label class="btn btn-raised btn-primary btn-sm select-button" style="height: 100%;">{{ select_list[loop.index0] }}SELECT</label>
-                                        <label class="btn btn-raised btn-primary btn-sm view-button" style="height: 100%;">{{ view_input }}VIEW</label>
+                                        {{doc_count}} entries
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        {% endfor %}
                     </form>
                     <div class="col-sm-5" style="padding: 0;">
                         <form method="POST" id="search-form" class="menubar" style="padding: 0;" action="{{ url_for('index') }}">
