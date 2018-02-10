@@ -38,7 +38,7 @@
         <div class="wrapper">
             <div class="container" style="margin-top: 50px;">
                 <div class="row justify-content-center">
-                    <form method="POST" id="sg-form" class="col-sm-5 form-group" action="{{ url_for('index') }}" style="padding: 0;">
+                    <form method="POST" id="sg-form" class="col-sm-5 col-md-push-1 form-group" action="{{ url_for('index') }}" style="padding: 0;">
                         <div style="padding: 0; margin-right: 20px;">
                             <button class="btn btn-block btn-raised btn-primary browse-button"><input type="submit" name="sgform" class="hidden">BROWSE</button>
                         </div>
@@ -65,7 +65,7 @@
                             </div>
                         </div>
                     </form>
-                    <div class="col-sm-5" style="padding: 0;">
+                    <div class="col-sm-5 col-md-push-1" style="padding: 0;">
                         <form method="POST" id="search-form" class="menubar" style="padding: 0;" action="{{ url_for('index') }}">
                             <div style="width: 100%;">{{ search_form.query(placeholder="Search in cluster", class_="search-bar shadow-depth-1") }}</div>
                             <!--<label class="btn btn-sm btn-success pull-right glyphicon glyphicon-search"></label>-->
