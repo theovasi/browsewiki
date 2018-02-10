@@ -9,13 +9,11 @@ from collections import Counter
 from operator import add
 
 
-def top_terms(tfidf_vectors, depth=100, top_n=3):
+def top_terms(tfidf_vectors, top_n=3):
     """ Find terms with the highest cumulative Tf-Idf score across all vectors.
 
         Args:
             document_vectors (list): A list of document Tf-Idf representations.
-            depth (int): The number of terms with the highest Tf-Idf value that
-                will be considered from each vector.
             top_n (int): The number of highest scoring terms to be returned.
 
         Returns:
@@ -31,7 +29,7 @@ def top_terms(tfidf_vectors, depth=100, top_n=3):
     return np.argsort(tfidf_sum).tolist()[::-1][:top_n]
 
 
-def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
+def get_cluster_reps(tfidf, kmodel, topic_space, dictionary, lemmatizer, depth=100):
     """ Represent clusters with their most important words using Tf-Idf.
 
         Args:
@@ -51,6 +49,14 @@ def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
         tfidf_vectors = []
 
         cluster_doc_ids = []
+        dist_space = kmodel.transform(topic_space)
+        dist_vector = dist_space[:, int(cluster_id)].argsort()
+        nearest_doc_ids = []
+        for doc_id in dist_vector:
+            if kmodel.labels_[doc_id] == cluster_id:
+                nearest_doc_ids.append(doc_id)
+        cluster_doc_ids.extend(nearest_doc_ids[:50])
+
         for doc_id, label in enumerate(kmodel.labels_):
             if label == cluster_id:
                 cluster_doc_ids.append(doc_id)
@@ -64,7 +70,7 @@ def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
         # Find the terms in the cluster with the best cumulative Tf/Idf score.
         most_important_terms = [lemmatizer.stem2lemma(dictionary[term_id])
                                 for term_id in top_terms(
-                                    tfidf_vectors, depth, top_n=100)]
+                                    tfidf_vectors, top_n=200)]
         cluster_reps.append(most_important_terms)
 
     changed = True
@@ -79,6 +85,10 @@ def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
 
         for index, rep in enumerate(cluster_reps):
             filtered_rep = []
+
+            if len(rep) <= 3:
+                continue
+
             for term in rep:
                 if rep_term_frequencies[term] < 2:
                     filtered_rep.append(term)
@@ -86,8 +96,11 @@ def get_cluster_reps(tfidf, kmodel, dictionary, lemmatizer, depth=100):
                     removed_terms.append(term)
                     changed = True
             filtered_cluster_reps.append(filtered_rep)
+
         cluster_reps = [rep for rep in filtered_cluster_reps]
 
+    cluster_reps = [rep[:3] for rep in cluster_reps]
+    print(cluster_reps)
     removed_term_freq = Counter(removed_terms)
     most_common_removed = [term_tuple for term_tuple in removed_term_freq]
     return cluster_reps, most_common_removed

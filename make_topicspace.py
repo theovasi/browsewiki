@@ -151,11 +151,14 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
             print('-- Loaded dictionary.')
+        if not 'topic_space' in locals():
+            topic_space = joblib.load(data_file_path + '/topic_space.txt')
+            print('-- Loaded topic space.')
         if not 'lemmatizer' in locals():
             lemmatizer = joblib.load(data_file_path + '/lemmatizer.txt')
             print('-- Loaded lemmatizer.')
-        cluster_reps = get_cluster_reps(
-            tfidf_sparse, best_kmodel, dictionary, lemmatizer)
+        cluster_reps, removed_terms = get_cluster_reps(
+            tfidf_sparse, best_kmodel, topic_space, dictionary, lemmatizer)
         joblib.dump(cluster_reps, '{}/cluster_reps.txt'.format(data_file_path))
 
     if not os.path.exists('{}/nn_model.txt'.format(data_file_path)):

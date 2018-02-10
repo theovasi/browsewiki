@@ -42,28 +42,28 @@
                         <div style="padding: 0; margin-right: 20px;">
                             <button class="btn btn-block btn-raised btn-primary browse-button"><input type="submit" name="sgform" class="hidden">BROWSE</button>
                         </div>
-                        {% if common_terms is defined %}
+                        {% if (common_terms | length) > 0 %}
                         <div class="common-terms shadow-depth-1">
                                     Common terms: {{common_terms[0]}}, {{common_terms[1]}}, {{common_terms[2]}}
                         </div>
                         {% endif %}
-                        {% for view_input in sgform.cluster_view %}
+                        {% for select_input in sgform.cluster_select %}
                         <div class="col-md-6" style="padding: 0; padding-right: 20px;">
                             <div class="cluster shadow-depth-1">
                                 <div class="cluster-rep cluster-top">
-                                    {{ cluster_reps[loop.index0][0] }}
+                                    {{ cluster_reps[loop.index0-1][0] }}
                                     -
-                                    {{ cluster_reps[loop.index0][1] }}
+                                    {{ cluster_reps[loop.index0-1][1] }}
                                     -
-                                    {{ cluster_reps[loop.index0][2] }} </br>
+                                    {{ cluster_reps[loop.index0-1][2] }} </br>
                                 </div>
                                 <div class="cluster-bottom">
                                     <div class="bottom-align-text cluster-count">
                                         {{cluster_doc_counts[loop.index0]}} entries
                                     </div>
                                     <div class="btn-group pull-right cluster-buttons" data-toggle="buttons">
-                                        <label class="btn btn-raised btn-primary btn-sm select-button" style="height: 100%;">{{ select_list[loop.index0] }}SELECT</label>
-                                        <label class="btn btn-raised btn-primary btn-sm view-button" style="height: 100%;">{{ view_input }}VIEW</label>
+                                        <label class="btn btn-raised btn-primary btn-sm select-button" style="height: 100%;">{{ select_input }}SELECT</label>
+                                        <label class="btn btn-raised btn-primary btn-sm view-button" style="height: 100%;">{{ view_list[loop.index0] }}VIEW</label>
                                     </div>
                                 </div>
                             </div>
