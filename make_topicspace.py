@@ -43,11 +43,11 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
                 batch.append(mogreltk.stem(text))
             batch_size += 1
             if batch_size >= max_batch_size:
-                dictionary.add_documents(batch, prune_at=10000)
+                dictionary.add_documents(batch, prune_at=20000)
                 batch_size = 0
                 batch = []
-        dictionary.add_documents(batch, prune_at=10000)
-        dictionary.filter_extremes(no_above=0.10)
+        dictionary.add_documents(batch, prune_at=20000)
+        dictionary.filter_extremes()
         joblib.dump(dictionary, data_file_path + '/dictionary.txt')
 
     # Second pass of the collection to generate the bag of words representation.
@@ -122,9 +122,10 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         best_silhouette_score = -1
         best_kmodel = None
         for index in range(10):
-            kmodel = kmeans(n_clusters=n_clusters, n_init=100)
+            kmodel = kmeans(n_clusters=n_clusters, n_init=10)
             kmodel.fit(topic_space)
             silhouette_score = cluster_metrics(kmodel, topic_space)
+            print('Calculated K-Means model {} with score {}.'.format(index, silhouette_score))
             if best_silhouette_score < silhouette_score:
                 best_silhouette_score = silhouette_score
                 best_kmodel = kmodel
