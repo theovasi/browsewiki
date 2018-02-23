@@ -177,7 +177,7 @@ def cluster_optimal_k(vector_space):
     """
 
     # Number of clusters must smaller than the number of documents.
-    if vector_space.shape[0] < 12:
+    if vector_space.shape[0] < 28:
         n_clusters = 1
     else:
         n_clusters = 12
@@ -290,6 +290,7 @@ def index(current_page=0):
                                        view_list=list(sgform.cluster_view),
                                        n_docs=n_docs,
                                        pagination=session['pagination'],
+                                       common_terms=session['common_terms'],
                                        titles=nearest_titles,
                                        summaries=nearest_summaries,
                                        links=nearest_links,
@@ -310,6 +311,7 @@ def index(current_page=0):
             session['k'] = len(session['kmodel'].cluster_centers_)
             session['dist_space'] = session['kmodel'].transform(
                 session['vector_space'])
+
             if session['k'] == 1:
                 app.logger.debug('\nReached end\n')
                 session['rep'] = session['cluster_reps'][int(
@@ -358,7 +360,6 @@ def index(current_page=0):
             sgform.cluster_view.choices = [(i, 'cluster_{}'.format(i))
                                            for i in range(session['k'])]
 
-            app.logger.debug(session['common_terms'])
             return render_template('index.html', sgform=sgform,
                                    search_form=search_form,
                                    cluster_reps=session['cluster_reps'],
@@ -386,7 +387,7 @@ def index(current_page=0):
                                    search_form=search_form,
                                    cluster_reps=session['cluster_reps'],
                                    common_terms=session['common_terms'],
-                                   view_list=list(sgform.cluster_select),
+                                   view_list=list(sgform.cluster_view),
                                    n_docs=n_docs,
                                    pagination=session['pagination'],
                                    titles=nearest_titles,
@@ -407,7 +408,7 @@ def index(current_page=0):
     return render_template('index.html', sgform=sgform,
                            search_form=search_form,
                            cluster_reps=session['cluster_reps'],
-                           view_list=list(sgform.cluster_select),
+                           view_list=list(sgform.cluster_view),
                            cluster_doc_counts=session['cluster_doc_counts'])
 
 
@@ -455,6 +456,7 @@ def view_page(current_page):
                                view_list=list(sgform.cluster_view),
                                n_docs=session['pagination'].n_items,
                                pagination=session['pagination'],
+                               common_terms=session['common_terms'],
                                titles=nearest_titles,
                                summaries=nearest_summaries,
                                links=nearest_links,
