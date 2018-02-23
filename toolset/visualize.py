@@ -73,6 +73,7 @@ def get_cluster_reps(tfidf, kmodel, topic_space, dictionary, lemmatizer, depth=1
                                     tfidf_vectors, top_n=200)]
         cluster_reps.append(most_important_terms)
 
+
     changed = True
     removed_terms = []
     while changed:
@@ -87,6 +88,7 @@ def get_cluster_reps(tfidf, kmodel, topic_space, dictionary, lemmatizer, depth=1
             filtered_rep = []
 
             if len(rep) <= 3:
+                filtered_cluster_reps.append(rep)
                 continue
 
             for term in rep:
@@ -100,10 +102,9 @@ def get_cluster_reps(tfidf, kmodel, topic_space, dictionary, lemmatizer, depth=1
         cluster_reps = [rep for rep in filtered_cluster_reps]
 
     cluster_reps = [rep[:3] for rep in cluster_reps]
-    print(cluster_reps)
     removed_term_freq = Counter(removed_terms)
     most_common_removed = [term_tuple for term_tuple in removed_term_freq]
-    return cluster_reps, most_common_removed
+    return cluster_reps, most_common_removed[:3]
 
 
 def get_cluster_category(kmodel, data_file_path, depth):
