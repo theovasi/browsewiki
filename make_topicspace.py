@@ -8,11 +8,11 @@ import argparse
 
 from toolset.corpus import Corpus
 from gensim import corpora, models, matutils
-from sklearn.cluster import MiniBatchKMeans as mbk
+from sklearn.cluster import KMeans as kmeans
 from toolset import mogreltk
 from sklearn.neighbors import NearestNeighbors as nn
 from toolset.cluster_metrics import cluster_metrics
-from toolset.visualize import get_cluster_reps 
+from toolset.visualize import get_cluster_reps
 
 
 def make_topicspace(data_file_path, stopwords_file_path=None,
@@ -43,11 +43,11 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
                 batch.append(mogreltk.stem(text))
             batch_size += 1
             if batch_size >= max_batch_size:
-                dictionary.add_documents(batch, prune_at=5000)
+                dictionary.add_documents(batch, prune_at=20000)
                 batch_size = 0
                 batch = []
-        dictionary.add_documents(batch, prune_at=5000)
-        dictionary.filter_extremes(no_below=100, no_above=0.15)
+        dictionary.add_documents(batch, prune_at=20000)
+        dictionary.filter_extremes()
         joblib.dump(dictionary, data_file_path + '/dictionary.txt')
 
     # Second pass of the collection to generate the bag of words representation.
@@ -121,11 +121,11 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
             print('-- Loaded topic space matrix')
         best_silhouette_score = -1
         best_kmodel = None
-        for index in range(100):
-            kmodel = mbk(n_clusters=n_clusters, n_init=100,
-                         reassignment_ratio=0.03)
+        for index in range(10):
+            kmodel = kmeans(n_clusters=n_clusters, n_init=10)
             kmodel.fit(topic_space)
             silhouette_score = cluster_metrics(kmodel, topic_space)
+            print('Calculated K-Means model {} with score {}.'.format(index, silhouette_score))
             if best_silhouette_score < silhouette_score:
                 best_silhouette_score = silhouette_score
                 best_kmodel = kmodel
@@ -152,19 +152,23 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
         if not 'dictionary' in locals():
             dictionary = joblib.load(data_file_path + '/dictionary.txt')
             print('-- Loaded dictionary.')
+        if not 'topic_space' in locals():
+            topic_space = joblib.load(data_file_path + '/topic_space.txt')
+            print('-- Loaded topic space.')
         if not 'lemmatizer' in locals():
             lemmatizer = joblib.load(data_file_path + '/lemmatizer.txt')
             print('-- Loaded lemmatizer.')
-        cluster_reps = get_cluster_reps(tfidf_sparse, best_kmodel, dictionary, lemmatizer)
+        cluster_reps, removed_terms = get_cluster_reps(
+            tfidf_sparse, best_kmodel, topic_space, dictionary, lemmatizer)
         joblib.dump(cluster_reps, '{}/cluster_reps.txt'.format(data_file_path))
 
     if not os.path.exists('{}/nn_model.txt'.format(data_file_path)):
         if 'tfidf_sparse' not in locals():
-            tfidf_sparse = joblib.load('{}/tfidf_sparse.txt'.format(data_file_path))
+            tfidf_sparse = joblib.load(
+                '{}/tfidf_sparse.txt'.format(data_file_path))
         nn_model = nn(n_neighbors=1000, radius=10)
         nn_model.fit(tfidf_sparse)
         joblib.dump(nn_model, '{}/nn_model.txt'.format(data_file_path))
-
 
 
 if __name__ == '__main__':

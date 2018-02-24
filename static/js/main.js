@@ -1,8 +1,14 @@
-$(document).ready(function() {
+$(document).ready( function() {
     'use strict';
     $('.summary').hide();
+    $('.view-button').each( function() {
+        var view_checked = $(this).find('input[name=cluster_view]').attr('checked');
+        if (typeof view_checked !== typeof undefined && view_checked !== false) {
+            $(this).addClass('active');
+        }
+    })
 
-    //$('input[name=cluster_select]').removeAttr('checked');
+
     $('.select-button').on('change', function() {
         if ($(this).hasClass('active')) {
             $(this).removeClass('active');
