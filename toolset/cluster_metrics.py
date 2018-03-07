@@ -13,12 +13,11 @@ def cluster_metrics(kmodel, vector_space):
             model was fit on.
 
     """
-    silhouette = metrics.silhouette_score(vector_space, kmodel.labels_,
-                                          metric='euclidean', sample_size=10000)
-   #   calhar = metrics.calinski_harabaz_score(
-   #       vector_space.toarray(), kmodel.labels_)
+    silhouette = metrics.silhouette_score(vector_space, kmodel.labels_)
+    calhar = metrics.calinski_harabaz_score(
+        vector_space.toarray(), kmodel.labels_)
 
-    return silhouette
+    return silhouette, calhar
 
 
 if __name__ == '__main__':

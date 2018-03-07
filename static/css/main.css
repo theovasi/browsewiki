@@ -1,3 +1,5 @@
+@fa-font-path: "../fonts";
+
 html {
     overflow-y: scroll;
 }
@@ -227,16 +229,16 @@ a.github-banner:visited {
 .btn.btn-primary.focus,
 .btn.btn-primary:focus {
   color: #fff;
-  background-color: #303F9F;
-  border-color: #303F9F;
+  background-color: #3066be;
+  border-color: #3066be;
   outline: none;
   box-shadow: none;
 }
 
 .btn.btn-primary:hover {
     color: #fff;
-    background-color: #303F9F;
-    border-color: #303F9F;
+    background-color: #3066be;
+    border-color: #3066be;
     outline: none;
     box-shadow: none;
   }
@@ -244,7 +246,7 @@ a.github-banner:visited {
 .btn.btn-primary.active,
 .btn.btn-primary:active {
   color: #fff;
-  background-color: #303F9F;
-  border-color: #303F9F;
+  background-color: #3066be;
+  border-color: #3066be;
   outline: none;
 }

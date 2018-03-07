@@ -469,7 +469,7 @@ def send_html(path):
 
 
 if __name__ == '__main__':
-    data_file_path = './appdata_new'
+    data_file_path = './appdata'
     corpus_frame = joblib.load('{}/corpus_frame.txt'.format(data_file_path))
     app.config['data_file_path'] = data_file_path
     app.config['doc_ids'] = list(corpus_frame.index.values)

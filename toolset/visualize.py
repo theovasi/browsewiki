@@ -73,7 +73,6 @@ def get_cluster_reps(tfidf, kmodel, topic_space, dictionary, lemmatizer, depth=1
                                     tfidf_vectors, top_n=200)]
         cluster_reps.append(most_important_terms)
 
-
     changed = True
     removed_terms = []
     while changed:
@@ -91,8 +90,9 @@ def get_cluster_reps(tfidf, kmodel, topic_space, dictionary, lemmatizer, depth=1
                 filtered_cluster_reps.append(rep)
                 continue
 
-            for term in rep:
-                if rep_term_frequencies[term] < 2:
+            for i, term in enumerate(rep):
+                if (rep_term_frequencies[term] < 2) or \
+                   ((3 - len(filtered_rep)) == (len(rep) - i - 1)):
                     filtered_rep.append(term)
                 else:
                     removed_terms.append(term)
