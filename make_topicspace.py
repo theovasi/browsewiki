@@ -126,8 +126,8 @@ def make_topicspace(data_file_path, stopwords_file_path=None,
             kmodel.fit(topic_space)
             silhouette_score = cluster_metrics(kmodel, topic_space)
             print('Calculated K-Means model {} with score {}.'.format(index, silhouette_score))
-            if best_silhouette_score < silhouette_score:
-                best_silhouette_score = silhouette_score
+            if best_silhouette_score < silhouette_score[0]:
+                best_silhouette_score = silhouette_score[0]
                 best_kmodel = kmodel
         dist_space = kmodel.transform(topic_space)
         print('Picked K-means model with silhouette score: {}'.format(
