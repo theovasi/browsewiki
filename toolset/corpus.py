@@ -5,6 +5,9 @@ import os
 import time
 import math
 import joblib
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.decomposition import TruncatedSVD
+from toolset import mogreltk
 from nltk import sent_tokenize, word_tokenize
 
 
@@ -36,6 +39,32 @@ class Corpus:
             path = self.document_paths[i]
             with open(path) as document_file:
                 yield document_file.read()
+
+    def make_tfidf(self, stopwords=None, max_dim=None, max_df=1.0,
+                   min_df=1, dump=False):
+        """ Produces a Tf-Idf matrix representation for the corpus.
+
+        Returns:
+            The Tf-Idf matrix in sparse matrix format.
+
+        """
+
+        # Make Tf-Idf matrix.
+        vectorizer = TfidfVectorizer(
+            max_df=max_df, min_df=min_df,
+            tokenizer=(lambda x: mogreltk.stem(x, stopwords=stopwords)))
+
+        tfidf_matrix = vectorizer.fit_transform(self.document_generator())
+
+        # Recude dimensions to specified number.
+        if max_dim is not None:
+            reducer = TruncatedSVD(n_components=max_dim)
+            tfidf_matrix = reducer.fit_transform(tfidf_matrix)
+
+        if dump:
+            joblib.dump(tfidf_matrix, 'tfidf.pkl')
+
+        return tfidf_matrix
 
     def stats(self, verbose=False):
         """ Calculate statistics about the collection.
