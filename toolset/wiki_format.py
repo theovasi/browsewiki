@@ -93,7 +93,7 @@ def wiki_format(text_file_path,
 
                     link = title.replace(' ', '_')
                     # Split document in sentences but remove title.
-                    doc_sentences = sent_tokenize(''.join(doc_text[2::])) 
+                    doc_sentences = sent_tokenize(''.join(doc_text[2::]))
 
                     # A summary will contain at least the first sentence of
                     # the document or its first 200 characters.
@@ -122,7 +122,7 @@ def wiki_format(text_file_path,
                     titles.append(title)
                     links.append(link)
                     summaries.append(summary)
-                    filepaths.append(filepath)
+                    filepaths.append(os.path.abspath(filepath))
 
                     with open(filepath, 'wb+') as output_document_file:
                         output_document_file.write(doc.text.encode('utf-8'))
@@ -133,11 +133,11 @@ def wiki_format(text_file_path,
                     if sub_size is not None:
                         print('Picked {}/{} documents at random, {} docs/s'.format(
                               n_docs, sub_size, math.floor(
-                              n_docs / (time.time() - start_time))))
+                                  n_docs / (time.time() - start_time))))
                     elif n_docs % 10000 == 0:
                         print('Added {} documents to the collection, {} docs/s'.format(
                               n_docs, math.floor(
-                              n_docs / (time.time() - start_time))))
+                                  n_docs / (time.time() - start_time))))
 
                     if sub_size is not None and n_docs >= sub_size:
                         corpus_frame = pd.DataFrame({'title': titles,
