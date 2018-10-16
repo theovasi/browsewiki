@@ -12,7 +12,7 @@ import joblib
 import argparse
 import re
 import pandas as pd
-from nltk import sent_tokenize, word_tokenize
+from nltk import sent_tokenize
 
 
 def wiki_format(text_file_path,
@@ -44,6 +44,7 @@ def wiki_format(text_file_path,
     links = []
     summaries = []
     filepaths = []
+
     if ignore_list_path is not None:
         ignore_list = joblib.load(ignore_list_path)
     start_time = time.time()
