@@ -1,32 +1,26 @@
+import os
 import uuid
 from math import ceil, floor
-from flask import Flask, render_template, redirect, url_for, request, session, send_from_directory
-from flask_wtf import FlaskForm
+from flask import Flask, render_template, redirect, url_for, request, session,\
+    send_from_directory
 from flask_kvsession import KVSessionExtension
 from simplekv.fs import FilesystemStore
 from forms import ScatterGatherForm, SearchForm
 import joblib
-import argparse
-import numpy as np
-import pandas as pd
-import scipy.sparse as sp
 from scipy.sparse import vstack
 from scipy.sparse import csc_matrix
 from gensim import matutils
 from sklearn.cluster import MiniBatchKMeans as mbk
 from sklearn.neighbors import NearestNeighbors as nn
 from sklearn.metrics.pairwise import euclidean_distances as edist
-from collections import Counter
-from operator import itemgetter
 from toolset import visualize
-from toolset.mogreltk import stem
-from sklearn.neighbors import NearestNeighbors as nn
+from toolset import mogreltk
 
 
 store = FilesystemStore('.sessiondata')
 
 app = Flask(__name__, static_url_path='/static')
-app.secret_key = 'v3rys3cr3t'
+app.secret_key = os.urandom(24)
 KVSessionExtension(store, app)
 
 
@@ -103,7 +97,7 @@ def k_nearest_docs_for_page(query, cluster_view_id, page):
     tfidf_model = joblib.load(
         '{}/tfidf_model.txt'.format(data_file_path))
     dictionary = joblib.load('{}/dictionary.txt'.format(data_file_path))
-    vector = tfidf_model[dictionary.doc2bow(stem(query))]
+    vector = tfidf_model[dictionary.doc2bow(mogreltk.stem(query))]
     vector.append((session['tfidf'].shape[1] - 1, 0))
     vector_sparse = csc_matrix.transpose(
         matutils.corpus2csc([vector])).tocsr()
