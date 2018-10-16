@@ -1,0 +1,13 @@
+sklearn
+gensim
+joblib
+nltk
+greek_stemmer
+scipy
+pandas
+docopt
+beautifulsoup4
+html5lib
+flask
+flask_wtf
+flask_kvsession
