@@ -68,7 +68,7 @@ def app_setup(language):
     # also create a dataframe that matches the document's filepaths to their
     # titles. short summaries and web links.
     wiki_format('data/' + dump_name + '-' + latest_version,
-                output_file_path='appdata', sub_size=10000)
+                output_file_path='appdata')
 
     # Generate the topic space and build all the models the app uses.
     make_topicspace('appdata', 'assets/el-stopwords.txt')
