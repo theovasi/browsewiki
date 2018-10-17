@@ -56,13 +56,16 @@ def app_setup(language):
 
     # Extract the documents form the compressed XML with Wikiextractor.
     # Wikiextractor puts the documents in txt files of equal size.
-    os.system('git clone https://github.com/attardi/wikiextractor')
-    os.system('python3 wikiextractor/WikiExtractor.py -s '
-              '--filter_disambig_pages --lists --keep_tables --no-templates '
-              '-o data/' + dump_name + '-' +
-              latest_version + ' data/' + dump_name + '-' +
-              latest_version + '-pages-articles.xml.bz2')
-    shutil.rmtree('wikiextractor')
+    if not os.path.exists('data/' + dump_name + '-' + latest_version):
+        os.system('git clone https://github.com/attardi/wikiextractor')
+        os.system('python3 wikiextractor/WikiExtractor.py -s '
+                  '--filter_disambig_pages --lists --keep_tables '
+                  '--no-templates -o data/' + dump_name + '-' +
+                  latest_version + ' data/' + dump_name + '-' +
+                  latest_version + '-pages-articles.xml.bz2')
+        shutil.rmtree('wikiextractor')
+    else:
+        print('Latest dump version already extracted.')
 
     # Format the documents so that there is one document per txt file and
     # also create a dataframe that matches the document's filepaths to their
