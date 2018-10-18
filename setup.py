@@ -10,12 +10,14 @@ Options:
 import os
 import shutil
 
+import re
+import nltk
 from docopt import docopt
 from urllib import request
-import re
 from bs4 import BeautifulSoup as bs
 from toolset.wiki_format import wiki_format
 from toolset.make_topicspace import make_topicspace
+nltk.download('punkt')
 
 
 def app_setup(language):
